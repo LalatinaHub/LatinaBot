@@ -14,7 +14,6 @@ type stateFn func(*echotron.Update) stateFn
 
 type bot struct {
 	accounts []db.DBScheme
-	db       db.DB
 	chatID   int64
 	state    stateFn
 	echotron.API
@@ -25,8 +24,8 @@ var (
 )
 
 func newBot(chatID int64) echotron.Bot {
+
 	bot := &bot{
-		db:     *db.New(),
 		chatID: chatID,
 		API:    echotron.NewAPI(botToken),
 	}
@@ -45,7 +44,12 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 			b.SendMessage("Have a free VPN account in simple steps !\nPlease select one of the following:", update.ChatID(), &echotron.MessageOptions{
 				ParseMode: "HTML",
 				ReplyMarkup: echotron.InlineKeyboardMarkup{
-					InlineKeyboard: helper.BuildInlineKeyboard([]string{"Build API URL", "Get VPN Account"}),
+					InlineKeyboard: append(helper.BuildInlineKeyboard([]string{"Build API URL", "Get VPN Account"}), []echotron.InlineKeyboardButton{
+						{
+							Text: "💕 List of Donators ❤️",
+							URL:  "https://telegra.ph/Top-Donations-11-05",
+						},
+					}),
 				},
 			})
 		}
@@ -53,10 +57,8 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 		if update.CallbackQuery.Data == "Build_API_URL" {
 			b.SendMessage("Not implemented yet !", update.ChatID(), nil)
 		} else if update.CallbackQuery.Data == "Get_VPN_Account" {
-			var (
-				protocols []string
-			)
-			b.accounts = b.db.Get("")
+			protocols := []string{}
+			b.accounts = db.New().Get("")
 
 			go b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
 
@@ -72,6 +74,11 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 				if !isExists {
 					protocols = append(protocols, account.VPN)
 				}
+			}
+
+			if len(protocols) <= 0 {
+				go b.SendMessage("No accounts found\nPlease try again later ...", update.ChatID(), nil)
+				return b.handleMessage
 			}
 
 			go b.SendMessage("Please select VPN protocol:", update.ChatID(), &echotron.MessageOptions{

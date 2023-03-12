@@ -109,11 +109,12 @@ func (b *bot) selectMode(update *echotron.Update) stateFn {
 			if mode == "Random" || mode == account.ConnMode {
 				isExists := false
 				tlsstr := "False"
-				for _, tls := range tlss {
-					if account.TLS {
-						tlsstr = "True"
-					}
 
+				if account.TLS {
+					tlsstr = "True"
+				}
+
+				for _, tls := range tlss {
 					if tls == tlsstr {
 						isExists = true
 						break
@@ -182,7 +183,7 @@ func (b *bot) selectTLS(update *echotron.Update) stateFn {
 				}
 			}
 
-			if !isExists {
+			if !isExists && isMatch {
 				networks = append(networks, account.Transport)
 			}
 		}
@@ -209,13 +210,36 @@ func (b *bot) finalVPN(update *echotron.Update) stateFn {
 			network     = update.CallbackQuery.Data
 		)
 
-		go b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
+		// Ignore special callback data
+		switch network {
+		case "Get_Another":
+			newAccounts = b.accounts
+		case "Done":
+			go b.SendMessage("Thanks for using our service\nPlease consider donating 🥺", update.ChatID(), &echotron.MessageOptions{
+				ParseMode: "HTML",
+				ReplyMarkup: echotron.InlineKeyboardMarkup{
+					InlineKeyboard: [][]echotron.InlineKeyboardButton{
+						{
+							echotron.InlineKeyboardButton{
+								Text: "Donate Me 💕",
+								URL:  "https://saweria.co/m0qa",
+							},
+						},
+					},
+				},
+			})
 
-		for _, account := range b.accounts {
-			if network == "Random" || network == account.Transport {
-				newAccounts = append(newAccounts, account)
+			return b.handleMessage
+		default:
+			for _, account := range b.accounts {
+				if network == "Random" || network == account.Transport {
+					newAccounts = append(newAccounts, account)
+				}
 			}
+			b.accounts = newAccounts
 		}
+
+		go b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
 
 		account := newAccounts[rand.Intn(len(newAccounts))]
 
@@ -239,10 +263,25 @@ func (b *bot) finalVPN(update *echotron.Update) stateFn {
 
 		go b.SendMessage(strings.Join(message, "\n"), update.ChatID(), &echotron.MessageOptions{
 			ParseMode: "HTML",
+			ReplyMarkup: echotron.InlineKeyboardMarkup{
+				InlineKeyboard: [][]echotron.InlineKeyboardButton{
+					{
+						echotron.InlineKeyboardButton{
+							Text:         "Get Another",
+							CallbackData: "Get_Another",
+						},
+						echotron.InlineKeyboardButton{
+							Text:         "Done",
+							CallbackData: "Done",
+						},
+					},
+				},
+			},
 		})
 
-		return b.handleMessage
+		return b.finalVPN
 	}
 
+	go b.SendMessage("Send /start for start using this bot again !", update.ChatID(), nil)
 	return b.handleMessage
 }
