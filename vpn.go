@@ -3,6 +3,7 @@ package latinabot
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 
 	"github.com/LalatinaHub/LatinaApi/common/account/converter"
@@ -42,10 +43,11 @@ func (b *bot) selectVPN(update *echotron.Update) stateFn {
 		go b.SendMessage("Select country code:", update.ChatID(), &echotron.MessageOptions{
 			ParseMode: "HTML",
 			ReplyMarkup: echotron.InlineKeyboardMarkup{
-				InlineKeyboard: helper.BuildInlineKeyboard(append(ccs, "Random")),
+				InlineKeyboard: helper.BuildInlineKeyboardWithPage(append(ccs, "Random"), 0),
 			},
 		})
 
+		b.ccs = ccs
 		b.accounts = newAccounts
 		return b.selectCC
 	}
@@ -60,6 +62,16 @@ func (b *bot) selectCC(update *echotron.Update) stateFn {
 			newAccounts []db.DBScheme
 			cc          = update.CallbackQuery.Data
 		)
+
+		if page, err := strconv.Atoi(update.CallbackQuery.Data); err == nil {
+			go b.EditMessageReplyMarkup(echotron.NewMessageID(update.ChatID(), update.CallbackQuery.Message.ID), &echotron.MessageReplyMarkup{
+				ReplyMarkup: echotron.InlineKeyboardMarkup{
+					InlineKeyboard: helper.BuildInlineKeyboardWithPage(append(b.ccs, "Random"), page),
+				},
+			})
+
+			return b.selectCC
+		}
 
 		go b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
 
@@ -210,19 +222,17 @@ func (b *bot) finalVPN(update *echotron.Update) stateFn {
 			network     = update.CallbackQuery.Data
 		)
 
-		// Ignore special callback data
-		switch network {
-		case "Get_Another":
-			newAccounts = b.accounts
-		case "Done":
+		// Special callback data
+		if network == "Done" {
+			go b.EditMessageReplyMarkup(echotron.NewMessageID(update.ChatID(), update.CallbackQuery.Message.ID), nil)
 			go b.SendMessage("Thanks for using our service\nPlease consider donating 🥺", update.ChatID(), &echotron.MessageOptions{
 				ParseMode: "HTML",
 				ReplyMarkup: echotron.InlineKeyboardMarkup{
 					InlineKeyboard: [][]echotron.InlineKeyboardButton{
 						{
-							echotron.InlineKeyboardButton{
-								Text: "Donate Me 💕",
-								URL:  "https://saweria.co/m0qa",
+							{
+								Text:         "Main Menu",
+								CallbackData: "menu",
 							},
 						},
 					},
@@ -230,13 +240,12 @@ func (b *bot) finalVPN(update *echotron.Update) stateFn {
 			})
 
 			return b.handleMessage
-		default:
-			for _, account := range b.accounts {
-				if network == "Random" || network == account.Transport {
-					newAccounts = append(newAccounts, account)
-				}
+		}
+
+		for _, account := range b.accounts {
+			if network == "Random" || network == account.Transport {
+				newAccounts = append(newAccounts, account)
 			}
-			b.accounts = newAccounts
 		}
 
 		go b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
@@ -246,6 +255,7 @@ func (b *bot) finalVPN(update *echotron.Update) stateFn {
 		message = append(message, fmt.Sprintf("<code>REMARKS       : %s</code>", account.Remark))
 		message = append(message, fmt.Sprintf("<code>SERVER        : %s</code>", account.Server))
 		message = append(message, fmt.Sprintf("<code>HOST          : %s</code>", account.Host))
+		message = append(message, fmt.Sprintf("<code>SNI           : %s</code>", account.SNI))
 		message = append(message, fmt.Sprintf("<code>PORT          : %d</code>", account.ServerPort))
 		message = append(message, fmt.Sprintf("<code>UUID          : %s</code>", account.UUID))
 		message = append(message, fmt.Sprintf("<code>PASSWORD      : %s</code>", account.Password))
@@ -266,11 +276,11 @@ func (b *bot) finalVPN(update *echotron.Update) stateFn {
 			ReplyMarkup: echotron.InlineKeyboardMarkup{
 				InlineKeyboard: [][]echotron.InlineKeyboardButton{
 					{
-						echotron.InlineKeyboardButton{
-							Text:         "Get Another",
-							CallbackData: "Get_Another",
+						{
+							Text:         "Re-Generate",
+							CallbackData: network,
 						},
-						echotron.InlineKeyboardButton{
+						{
 							Text:         "Done",
 							CallbackData: "Done",
 						},
