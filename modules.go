@@ -6,6 +6,12 @@ import (
 	"github.com/NicoNex/echotron/v3"
 )
 
+func Client() *bot {
+	return &bot{
+		API: echotron.NewAPI(botToken),
+	}
+}
+
 func SendVPNToTopic(chatID int64, topicID int) {
 	var (
 		bug     = []string{"BUG.COM"}
@@ -13,17 +19,7 @@ func SendVPNToTopic(chatID int64, topicID int) {
 		message = helper.MakeVPNMessage(account)
 	)
 
-	go SendMessageToTopic(message, chatID, topicID)
-}
-
-func SendMessageToTopic(message string, chatID int64, topicID int) (echotron.APIResponseMessage, error) {
-	var (
-		b = &bot{
-			API: echotron.NewAPI(botToken),
-		}
-	)
-
-	return b.SendMessage(message, chatID, &echotron.MessageOptions{
+	go Client().SendMessage(message, chatID, &echotron.MessageOptions{
 		ParseMode:        "HTML",
 		ReplyToMessageID: int(topicID),
 	})
