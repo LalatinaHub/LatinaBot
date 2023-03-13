@@ -16,7 +16,7 @@ func SendVPNToTopic(chatID int64, topicID int) {
 	go SendMessageToTopic(message, chatID, topicID)
 }
 
-func SendMessageToTopic(message string, chatID int64, topicID int) (echotron.APIResponse, error) {
+func SendMessageToTopic(message string, chatID int64, topicID int) (echotron.APIResponseMessage, error) {
 	var (
 		b = &bot{
 			API: echotron.NewAPI(botToken),
