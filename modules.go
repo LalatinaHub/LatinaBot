@@ -16,14 +16,14 @@ func SendVPNToTopic(chatID int64, topicID int) {
 	go SendMessageToTopic(message, chatID, topicID)
 }
 
-func SendMessageToTopic(message string, chatID int64, topicID int) {
+func SendMessageToTopic(message string, chatID int64, topicID int) (echotron.APIResponse, error) {
 	var (
 		b = &bot{
 			API: echotron.NewAPI(botToken),
 		}
 	)
 
-	go b.SendMessage(message, chatID, &echotron.MessageOptions{
+	return b.SendMessage(message, chatID, &echotron.MessageOptions{
 		ParseMode:        "HTML",
 		ReplyToMessageID: int(topicID),
 	})
