@@ -6,6 +6,7 @@ require (
 	github.com/LalatinaHub/LatinaApi v0.0.0-20230312042122-e2954f2b3ef1
 	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230310234745-556f67937278
 	github.com/NicoNex/echotron/v3 v3.23.3
+	golang.org/x/text v0.7.0
 )
 
 require (
@@ -84,7 +85,6 @@ require (
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20230227214838-9b19f0bdc514 // indirect

@@ -2,11 +2,13 @@ package latinabot
 
 import (
 	"fmt"
+
 	"os"
 	"strings"
 
 	"log"
 
+	A "github.com/LalatinaHub/LatinaApi/common/account"
 	"github.com/LalatinaHub/LatinaBot/helper"
 	"github.com/LalatinaHub/LatinaSub-go/db"
 	"github.com/NicoNex/echotron/v3"
@@ -49,25 +51,13 @@ func (b *bot) Update(update *echotron.Update) {
 	b.state = b.state(update)
 }
 
-func (b *bot) menu(update *echotron.Update) {
-	go b.SendMessage("Have a free VPN account in simple steps !\nPlease select one of the following:", update.ChatID(), &echotron.MessageOptions{
-		ParseMode: "HTML",
-		ReplyMarkup: echotron.InlineKeyboardMarkup{
-			InlineKeyboard: append(helper.BuildInlineKeyboard([]string{"Build API URL", "Get VPN Account"}), []echotron.InlineKeyboardButton{
-				{
-					Text: "🌻 List of Donators",
-					URL:  "https://telegra.ph/Top-Donations-11-05",
-				},
-				{
-					Text: "Donate Me 🌱",
-					URL:  "https://saweria.co/m0qa",
-				},
-			}),
-		},
-	})
-}
-
 func (b *bot) handleMessage(update *echotron.Update) stateFn {
+	// Ignore not private chat
+	if update.ChatID() < 0 {
+		// go b.SendMessage("Please chat me in private", update.ChatID(), nil)
+		return b.handleMessage
+	}
+
 	if update.Message != nil {
 		if update.Message.Text == "/start" {
 			go b.menu(update)
@@ -84,7 +74,7 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 				protocolsCount []string
 				message        []string
 			)
-			b.accounts = db.New().Get("")
+			b.accounts = A.Get("")
 
 			go b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
 
