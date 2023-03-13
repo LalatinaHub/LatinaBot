@@ -8,13 +8,19 @@ import (
 
 func SendVPNToTopic(chatID int64, topicID int) {
 	var (
+		bug     = []string{"BUG.COM"}
+		account = A.PopulateBugs(A.Get("WHERE VPN != shadowsocks ORDER BY RANDOM() LIMIT 1"), bug, bug)[0]
+		message = helper.MakeVPNMessage(account)
+	)
+
+	go SendMessageToTopic(message, chatID, topicID)
+}
+
+func SendMessageToTopic(message string, chatID int64, topicID int) {
+	var (
 		b = &bot{
 			API: echotron.NewAPI(botToken),
 		}
-
-		bug     = []string{"BUG.COM"}
-		account = A.PopulateBugs(A.Get("ORDER BY RANDOM() LIMIT 1"), bug, bug)[0]
-		message = helper.MakeVPNMessage(account)
 	)
 
 	go b.SendMessage(message, chatID, &echotron.MessageOptions{
