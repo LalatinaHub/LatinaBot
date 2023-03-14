@@ -15,12 +15,13 @@ func Client() *bot {
 func SendVPNToTopic(chatID int64, topicID int) {
 	var (
 		bug     = []string{"BUG.COM"}
-		account = A.PopulateBugs(A.Get("WHERE VPN != shadowsocks ORDER BY RANDOM() LIMIT 1"), bug, bug)[0]
+		account = A.PopulateBugs(A.Get("WHERE VPN != 'shadowsocks' ORDER BY RANDOM() LIMIT 1"), bug, bug)[0]
 		message = helper.MakeVPNMessage(account)
 	)
 
 	go Client().SendMessage(message, chatID, &echotron.MessageOptions{
-		ParseMode:        "HTML",
-		ReplyToMessageID: int(topicID),
+		ParseMode:           "HTML",
+		ReplyToMessageID:    int(topicID),
+		DisableNotification: true,
 	})
 }

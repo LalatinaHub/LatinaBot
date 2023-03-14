@@ -18,6 +18,11 @@ func (b *bot) menu(update *echotron.Update) {
 					Text: "Donate Me 🌱",
 					URL:  "https://saweria.co/m0qa",
 				},
+			}, []echotron.InlineKeyboardButton{
+				{
+					Text: "Join Our Group",
+					URL:  "https://t.me/foolvpn",
+				},
 			}),
 		},
 	})

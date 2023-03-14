@@ -4,9 +4,14 @@ go 1.20
 
 require (
 	github.com/LalatinaHub/LatinaApi v0.0.0-20230312042122-e2954f2b3ef1
-	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230310234745-556f67937278
+	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230313061740-36258574d0a7
 	github.com/NicoNex/echotron/v3 v3.23.3
 	golang.org/x/text v0.7.0
+)
+
+replace (
+	github.com/LalatinaHub/LatinaApi => ../LatinaApi
+	github.com/LalatinaHub/LatinaSub-go => ../LatinaSub-go
 )
 
 require (
