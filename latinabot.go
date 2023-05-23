@@ -2,37 +2,28 @@ package latinabot
 
 import (
 	"fmt"
-
 	"os"
+	"strconv"
+
 	"strings"
 
 	"log"
 
-	A "github.com/LalatinaHub/LatinaApi/common/account"
-	"github.com/LalatinaHub/LatinaBot/helper"
-	"github.com/LalatinaHub/LatinaSub-go/db"
+	"github.com/LalatinaHub/LatinaApi/common/member"
 	"github.com/NicoNex/echotron/v3"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 type stateFn func(*echotron.Update) stateFn
 
-type vpnTempData struct {
-	ccs []string
-}
-
 type bot struct {
-	accounts []db.DBScheme
-	chatID   int64
-	state    stateFn
-	caser    cases.Caser
+	chatID int64
+	state  stateFn
 	echotron.API
-	vpnTempData
 }
 
 var (
-	botToken = os.Getenv("BOT_TOKEN")
+	adminID, _ = strconv.ParseInt(os.Getenv("ADMIN_ID"), 10, 64)
+	botToken   = os.Getenv("BOT_TOKEN")
 )
 
 func newBot(chatID int64) echotron.Bot {
@@ -40,7 +31,6 @@ func newBot(chatID int64) echotron.Bot {
 	bot := &bot{
 		chatID: chatID,
 		API:    echotron.NewAPI(botToken),
-		caser:  cases.Title(language.English),
 	}
 
 	bot.state = bot.handleMessage
@@ -61,63 +51,54 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 	if update.Message != nil {
 		if update.Message.Text == "/start" {
 			go b.menu(update)
-		}
-	} else if update.CallbackQuery != nil {
-		if update.CallbackQuery.Data == "menu" {
-			go b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
-			go b.menu(update)
-		} else if update.CallbackQuery.Data == "Build_API_URL" {
-			b.SendMessage("Not implemented yet !", update.ChatID(), nil)
-		} else if update.CallbackQuery.Data == "Get_VPN_Account" {
+		} else if strings.HasPrefix(update.Message.Text, "/setpass") {
 			var (
-				protocols      []string
-				protocolsCount []string
-				message        []string
+				values          = strings.Split(update.Message.Text, " ")
+				password string = ""
 			)
-			b.accounts = A.Get("")
 
-			go b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
+			if len(values) == 2 {
+				password = values[1]
+			} else {
+				password = member.GenerateHash(strconv.FormatInt(update.ChatID(), 10))
+			}
 
-			for _, account := range b.accounts {
-				isExists := false
-				for _, protocol := range protocols {
-					if account.VPN == protocol {
-						isExists = true
-						break
+			if member.ChangePassword(update.ChatID(), password) {
+				b.SendMessage("Berhasil merubah password !", update.ChatID(), nil)
+				b.menu(update)
+			} else {
+				b.SendMessage("Gagal merubah password !", update.ChatID(), nil)
+			}
+		} else if strings.HasPrefix(update.Message.Text, "/member") {
+			if update.ChatID() == adminID {
+				values := strings.Split(update.Message.Text, " ")
+
+				if len(values) == 3 {
+					var (
+						id, _   = strconv.ParseInt(values[1], 10, 64)
+						subs, _ = strconv.Atoi(values[2])
+					)
+
+					b.SendMessage(fmt.Sprintf("Menambahkan %d untuk menjadi premium selama %d bulan ...", id, subs), update.ChatID(), nil)
+					if member.UpdateMember(id, subs) {
+						b.SendMessage("Berhasil menambahkan member premium !", update.ChatID(), nil)
+
+						if subs > 0 {
+							b.SendMessage(fmt.Sprintf("Kamu terdaftar sebagai premium selama %d bulan !", subs), id, nil)
+						} else {
+							b.SendMessage(fmt.Sprintf("Masa Aktif akun kamu diturunkan selama %d bulan :(", subs), id, nil)
+						}
+					} else {
+						b.SendMessage("Gagal menambahkan member premium !", update.ChatID(), nil)
 					}
+
+					return b.handleMessage
 				}
-
-				if !isExists {
-					protocols = append(protocols, account.VPN)
-				}
-				protocolsCount = append(protocolsCount, account.VPN)
+				b.SendMessage("Format pesan tidak sesuai !", update.ChatID(), nil)
 			}
-
-			if len(protocols) <= 0 {
-				go b.SendMessage("No accounts found\nPlease try again later ...", update.ChatID(), nil)
-				return b.handleMessage
-			}
-
-			message = append(message, "Please select VPN protocol:")
-			message = append(message, "")
-			for _, protocol := range protocols {
-				var count int
-				for _, protocolCount := range protocolsCount {
-					if protocolCount == protocol {
-						count++
-					}
-				}
-				message = append(message, fmt.Sprintf("%s : %d", b.caser.String(protocol), count))
-			}
-
-			go b.SendMessage(strings.Join(message, "\n"), update.ChatID(), &echotron.MessageOptions{
-				ParseMode: "HTML",
-				ReplyMarkup: echotron.InlineKeyboardMarkup{
-					InlineKeyboard: helper.BuildInlineKeyboard(protocols),
-				},
-			})
-
-			return b.selectVPN
+		} else if update.Message.Photo != nil {
+			b.ForwardMessage(adminID, update.ChatID(), update.Message.ID, nil)
+			b.SendMessage("Bukti pembayaran berhasil dikirimkan ke admin !\nMohon tunggu pemberitahuan dari bot", update.ChatID(), nil)
 		}
 	}
 
