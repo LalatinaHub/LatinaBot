@@ -49,7 +49,7 @@ func (b *bot) menu(update *echotron.Update) {
 	message = append(message, "\nAmbil akun VPN gratis full speed dengan langkah mudah !")
 	message = append(message, "\n@d_fordlalatina")
 
-	go b.SendPhoto(echotron.NewInputFileURL("https://github.com/LalatinaHub/LatinaBot/blob/main/assets/Banner.png"), update.ChatID(), &echotron.PhotoOptions{
+	go b.SendPhoto(echotron.NewInputFileURL("https://raw.githubusercontent.com/LalatinaHub/LatinaBot/main/assets/Banner.png"), update.ChatID(), &echotron.PhotoOptions{
 		Caption:   strings.Join(message, "\n"),
 		ParseMode: "HTML",
 		ReplyMarkup: echotron.InlineKeyboardMarkup{
