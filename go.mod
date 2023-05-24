@@ -3,7 +3,7 @@ module github.com/LalatinaHub/LatinaBot
 go 1.20
 
 require (
-	github.com/LalatinaHub/LatinaApi v0.0.0-20230523100450-ade3f618b34e
+	github.com/LalatinaHub/LatinaApi v0.0.0-20230524004341-e8a0a005b4cb
 	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230523100059-2aa8df79f6dc
 	github.com/NicoNex/echotron/v3 v3.25.0
 )

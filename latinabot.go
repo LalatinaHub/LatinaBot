@@ -50,6 +50,9 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 
 	if update.Message != nil {
 		if update.Message.Text == "/start" {
+			if !member.IsExists(update.ChatID()) {
+				member.UpdateMember(update.ChatID(), -1)
+			}
 			go b.menu(update)
 		} else if strings.HasPrefix(update.Message.Text, "/setpass") {
 			var (
@@ -64,10 +67,10 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 			}
 
 			if member.ChangePassword(update.ChatID(), password) {
-				b.SendMessage("Berhasil merubah password !", update.ChatID(), nil)
-				b.menu(update)
+				go b.SendMessage("Password berhasil dirubah", update.ChatID(), nil)
+				go b.menu(update)
 			} else {
-				b.SendMessage("Gagal merubah password !", update.ChatID(), nil)
+				go b.SendMessage("Gagal merubah password / Password telah digunakan !", update.ChatID(), nil)
 			}
 		} else if strings.HasPrefix(update.Message.Text, "/member") {
 			if update.ChatID() == adminID {
@@ -79,26 +82,26 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 						subs, _ = strconv.Atoi(values[2])
 					)
 
-					b.SendMessage(fmt.Sprintf("Menambahkan %d untuk menjadi premium selama %d bulan ...", id, subs), update.ChatID(), nil)
+					go b.SendMessage(fmt.Sprintf("Menambahkan %d untuk menjadi premium selama %d bulan ...", id, subs), update.ChatID(), nil)
 					if member.UpdateMember(id, subs) {
-						b.SendMessage("Berhasil menambahkan member premium !", update.ChatID(), nil)
+						go b.SendMessage("Berhasil menambahkan member premium !", update.ChatID(), nil)
 
 						if subs > 0 {
-							b.SendMessage(fmt.Sprintf("Kamu terdaftar sebagai premium selama %d bulan !", subs), id, nil)
-						} else {
-							b.SendMessage(fmt.Sprintf("Masa Aktif akun kamu diturunkan selama %d bulan :(", subs), id, nil)
+							go b.SendMessage(fmt.Sprintf("Masa aktif premium kamu ditambahkan selama %d bulan !", subs), id, nil)
+						} else if subs < 0 {
+							go b.SendMessage(fmt.Sprintf("Masa aktif premium kamu diturunkan selama %d bulan :(", subs), id, nil)
 						}
 					} else {
-						b.SendMessage("Gagal menambahkan member premium !", update.ChatID(), nil)
+						go b.SendMessage("Gagal menambahkan member premium !", update.ChatID(), nil)
 					}
 
 					return b.handleMessage
 				}
-				b.SendMessage("Format pesan tidak sesuai !", update.ChatID(), nil)
+				go b.SendMessage("Format pesan tidak sesuai !", update.ChatID(), nil)
 			}
 		} else if update.Message.Photo != nil {
-			b.ForwardMessage(adminID, update.ChatID(), update.Message.ID, nil)
-			b.SendMessage("Bukti pembayaran berhasil dikirimkan ke admin !\nMohon tunggu pemberitahuan dari bot", update.ChatID(), nil)
+			go b.ForwardMessage(adminID, update.ChatID(), update.Message.ID, nil)
+			go b.SendMessage("Bukti pembayaran berhasil dikirimkan ke admin !\nMohon tunggu pemberitahuan dari bot", update.ChatID(), nil)
 		}
 	}
 
