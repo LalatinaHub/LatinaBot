@@ -3,8 +3,8 @@ module github.com/LalatinaHub/LatinaBot
 go 1.20
 
 require (
-	github.com/LalatinaHub/LatinaApi v0.0.0-20230524004341-e8a0a005b4cb
-	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230523100059-2aa8df79f6dc
+	github.com/LalatinaHub/LatinaApi v0.0.0-20230525061249-c540983e6907
+	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230525052600-259d5bdd882d
 	github.com/NicoNex/echotron/v3 v3.25.0
 )
 
@@ -82,6 +82,7 @@ require (
 	github.com/sagernet/utls v0.0.0-20230309024959-6732c2ab36f2 // indirect
 	github.com/sagernet/websocket v0.0.0-20220913015213-615516348b4e // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20221116151939-c99467f53f2c // indirect
+	github.com/sethvargo/go-password v0.2.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/u-root/uio v0.0.0-20230220225925-ffce2a382923 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect

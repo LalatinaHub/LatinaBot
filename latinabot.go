@@ -54,23 +54,12 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 				member.UpdateMember(update.ChatID(), -1)
 			}
 			go b.menu(update)
-		} else if strings.HasPrefix(update.Message.Text, "/setpass") {
-			var (
-				values          = strings.Split(update.Message.Text, " ")
-				password string = ""
-			)
-
-			if len(values) == 2 {
-				password = values[1]
-			} else {
-				password = member.GenerateHash(strconv.FormatInt(update.ChatID(), 10))
-			}
-
-			if member.ChangePassword(update.ChatID(), password) {
-				go b.SendMessage("Password berhasil dirubah", update.ChatID(), nil)
+		} else if strings.HasPrefix(update.Message.Text, "/newpass") {
+			if member.ChangePassword(update.ChatID()) {
+				go b.SendMessage("Password berhasil diperbarui", update.ChatID(), nil)
 				go b.menu(update)
 			} else {
-				go b.SendMessage("Gagal merubah password / Password telah digunakan !", update.ChatID(), nil)
+				go b.SendMessage("Password gagal diperbarui", update.ChatID(), nil)
 			}
 		} else if strings.HasPrefix(update.Message.Text, "/member") {
 			if update.ChatID() == adminID {

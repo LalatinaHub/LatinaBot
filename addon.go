@@ -43,8 +43,8 @@ func (b *bot) menu(update *echotron.Update) {
 		message = append(message, "- Harga premium hanya <b>7k</b> perbulan")
 	}
 
-	message = append(message, "- Kirim <code>/setpass PASSWORD</code> untuk merubah password")
-	message = append(message, "- Ketahuan nakal = Ban permanen (by ID)")
+	message = append(message, "- Kirim <code>/newpass</code> untuk memperbarui password")
+	message = append(message, "- Ketahuan nakal = Premium hangus")
 
 	message = append(message, "\nAmbil akun VPN gratis full speed dengan langkah mudah !")
 	message = append(message, "\n@d_fordlalatina")
