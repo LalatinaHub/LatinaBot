@@ -89,7 +89,11 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 				go b.SendMessage("Format pesan tidak sesuai !", update.ChatID(), nil)
 			}
 		} else if update.Message.Photo != nil {
-			go b.ForwardMessage(adminID, update.ChatID(), update.Message.ID, nil)
+			res, _ := b.ForwardMessage(adminID, update.ChatID(), update.Message.ID, nil)
+			go b.SendMessage(fmt.Sprintf("Bukti pembayaran dari <code>%d</code>", update.ChatID()), adminID, &echotron.MessageOptions{
+				ReplyToMessageID: res.Result.ID,
+				ParseMode:        "HTML",
+			})
 			go b.SendMessage("Bukti pembayaran berhasil dikirimkan ke admin !\nMohon tunggu pemberitahuan dari bot", update.ChatID(), nil)
 		}
 	}
