@@ -61,6 +61,13 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 			} else {
 				go b.SendMessage("Password gagal diperbarui", update.ChatID(), nil)
 			}
+		} else if strings.HasPrefix(update.Message.Text, "/dbq") {
+			if update.ChatID() == adminID {
+				_, e := b.SendDocument(echotron.NewInputFilePath("DB_QUERY.txt"), adminID, nil)
+				if e != nil {
+					go b.SendMessage(e.Error(), adminID, nil)
+				}
+			}
 		} else if strings.HasPrefix(update.Message.Text, "/member") {
 			if update.ChatID() == adminID {
 				values := strings.Split(update.Message.Text, " ")
