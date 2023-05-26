@@ -9,10 +9,14 @@ import (
 )
 
 func (b *bot) menu(update *echotron.Update) {
-	message := []string{fmt.Sprintf("Halo %s !", update.Message.From.FirstName)}
+	var (
+		expired, password = member.GetMember(update.ChatID())
+		message           = []string{fmt.Sprintf("Halo %s !", update.Message.From.FirstName)}
+	)
 
-	if expired, password := member.GetMember(update.Message.From.ID); expired <= 0 {
-		message = append(message, "\nStatus Akun: <b>Premium</b>")
+	message = append(message, fmt.Sprintf("\nID: <code>%d</code>", update.ChatID()))
+	if expired <= 0 {
+		message = append(message, "Status Akun: <b>Premium</b> 👑")
 		message = append(message, fmt.Sprintf("Password: <code>%s</code>", password))
 		message = append(message, fmt.Sprintf("Masa Aktif: %d Day(s)", expired))
 
@@ -20,17 +24,17 @@ func (b *bot) menu(update *echotron.Update) {
 		message = append(message, "- Tidak bisa mengambil akun VPN lebih dari 10")
 
 		message = append(message, "\nCatatan:")
-		message = append(message, "- Tolong jangan membagikan password demi kebaikan bersama :)")
-		message = append(message, "- Segera ganti password kamu apabila bocor ke publik")
 		message = append(message, "- Masa aktif akun tidak berlaku akumulasi")
+		message = append(message, "- Ketahuan nakal = Premium hangus")
 	} else {
-		message = append(message, "\nStatus Akun: <b>Gratis</b>")
+		message = append(message, "Status Akun: <b>Gratis</b> 👒")
 		message = append(message, fmt.Sprintf("Password: <code>%s</code>", password))
 		message = append(message, "Masa Aktif: Lifetime")
 
 		message = append(message, "\nBatasan:")
 		message = append(message, "- Tidak bisa mengambil akun VPN lebih dari 3")
 		message = append(message, "- Hanya bisa mengambil akun VPN dari SG dan ID")
+		message = append(message, "- Hanya bisa mengambil akun VMess")
 
 		message = append(message, "\nCara Order:")
 		message = append(message, "1. Lakukan pembayaran pada e-wallet (lihat banner)")
@@ -39,12 +43,13 @@ func (b *bot) menu(update *echotron.Update) {
 		message = append(message, "4. Duduk manis sambil menunggu aktivasi akun diproses")
 
 		message = append(message, "\nCatatan:")
-		message = append(message, "- Pembelian premium tidak berlaku refund")
 		message = append(message, "- Harga premium hanya <b>7k</b> perbulan")
 	}
 
-	message = append(message, "- Kirim <code>/newpass</code> untuk memperbarui password")
-	message = append(message, "- Ketahuan nakal = Premium hangus")
+	message = append(message, "- Tidak ada refund")
+	message = append(message, "- Dilarang membagikan password")
+	message = append(message, "- Segera ganti password apabila bocor ke publik")
+	message = append(message, "- Kirim /newpass untuk memperbarui password")
 
 	message = append(message, "\nAmbil akun VPN gratis full speed dengan langkah mudah !")
 	message = append(message, "\n@d_fordlalatina")
@@ -56,7 +61,17 @@ func (b *bot) menu(update *echotron.Update) {
 			InlineKeyboard: [][]echotron.InlineKeyboardButton{
 				{
 					{
-						Text: "Join Group",
+						Text: "😎 Ambil Akun",
+						URL:  "https://fool.azurewebsites.net/get?format=raw&region=Asia&cdn=bug.com&sni=bug.com&pass=" + password,
+					},
+					{
+						Text: "Tutorial 🤔",
+						URL:  "https://fool.azurewebsites.net/api/get.html",
+					},
+				},
+				{
+					{
+						Text: "Gabung Grup",
 						URL:  "https://t.me/foolvpn",
 					},
 				},
