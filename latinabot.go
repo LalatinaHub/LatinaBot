@@ -1,6 +1,7 @@
 package latinabot
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"strconv"
@@ -10,6 +11,8 @@ import (
 	"log"
 
 	"github.com/LalatinaHub/LatinaApi/common/member"
+	"github.com/LalatinaHub/LatinaBot/helper"
+	"github.com/LalatinaHub/LatinaSub-go/db"
 	"github.com/NicoNex/echotron/v3"
 )
 
@@ -61,6 +64,16 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 			} else {
 				go b.SendMessage("Password gagal diperbarui", update.ChatID(), nil)
 			}
+		} else if strings.HasPrefix(update.Message.Text, "/resetpass") {
+			premiumData := member.GetPremiumAccount(update.ChatID())
+			if premiumData.Domain != "" {
+				if member.UpdatePremiumPassword(update.ChatID(), premiumData.Domain) {
+					go b.SendMessage("Password berhasil diperbarui", update.ChatID(), nil)
+					go b.menu(update)
+				} else {
+					go b.SendMessage("Password gagal diperbarui", update.ChatID(), nil)
+				}
+			}
 		} else if strings.HasPrefix(update.Message.Text, "/dbq") {
 			if update.ChatID() == adminID {
 				_, e := b.SendDocument(echotron.NewInputFilePath("DB_QUERY.txt"), adminID, nil)
@@ -102,6 +115,35 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 				ParseMode:        "HTML",
 			})
 			go b.SendMessage("Bukti pembayaran berhasil dikirimkan ke admin !\nMohon tunggu pemberitahuan dari bot", update.ChatID(), nil)
+		}
+	} else if update.CallbackQuery != nil {
+		switch update.CallbackQuery.Data {
+		case "create_account":
+			if premium, _ := member.GetMember(update.ChatID()); premium < 1 {
+				var (
+					vpnTypes []string
+				)
+
+				rows, _ := db.New().Conn().Query("SELECT protocol FROM protocols")
+
+				defer rows.Close()
+
+				for rows.Next() {
+					var vpn sql.NullString
+
+					rows.Scan(&vpn)
+					vpnTypes = append(vpnTypes, vpn.String)
+				}
+
+				b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
+				go b.SendMessage("Silahkan pilih protokol:", update.ChatID(), &echotron.MessageOptions{
+					ReplyMarkup: echotron.InlineKeyboardMarkup{
+						InlineKeyboard: helper.BuildInlineKeyboard(vpnTypes),
+					},
+				})
+
+				return b.handlePremiumType
+			}
 		}
 	}
 
