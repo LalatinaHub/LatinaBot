@@ -26,9 +26,11 @@ func (b *bot) menu(update *echotron.Update) {
 		message = append(message, "Status Akun: <b>Premium</b> 👑")
 		message = append(message, fmt.Sprintf("Password: <code>%s</code>", password))
 		message = append(message, fmt.Sprintf("Masa Aktif: %d Day(s)", expired))
+		message = append(message, fmt.Sprintf("Quota: %s", "Unlimited"))
 
 		message = append(message, "\nInfo Akun VPN:")
 		message = append(message, fmt.Sprintf("Jenis: %s", premiumData.VPN))
+		message = append(message, fmt.Sprintf("Quota: %d MB", premiumData.Quota))
 		message = append(message, fmt.Sprintf("Password: <code>%s</code>", premiumData.Password))
 		message = append(message, fmt.Sprintf("Domain: %s", premiumData.Domain))
 		message = append(message, fmt.Sprintf("Path: /%s", premiumData.VPN))
@@ -37,10 +39,6 @@ func (b *bot) menu(update *echotron.Update) {
 		message = append(message, "- Tidak bisa mengambil akun VPN lebih dari 10")
 
 		message = append(message, "\nCatatan:")
-		message = append(message, "- Mohon kesadarannya supaya <b>hanya menggunakan akun premium untuk keperluan sehari-hari</b>")
-		message = append(message, "-- Contoh: Browsing, YT, Games, Sosmed, dll")
-		message = append(message, "-- Jika ingin download torrent, file gajah, RT/RW, dll. Gunakan akun dari api seperti biasanya (bukan premium)")
-		message = append(message, "-- ! Kalo bandel nanti saya batasi menggunakan bandwith !")
 		message = append(message, "- Masa aktif akun tidak berlaku akumulasi")
 		message = append(message, "- Ketahuan nakal = Premium hangus")
 		message = append(message, "- Kirim /resetpass untuk reset password akun vpn")
