@@ -59,7 +59,6 @@ func (b *bot) menu(update *echotron.Update) {
 		message = append(message, "4. Duduk manis sambil menunggu aktivasi akun diproses")
 
 		message = append(message, "\nCatatan:")
-		message = append(message, "- Harga premium hanya <b>7k</b> perbulan")
 	}
 
 	message = append(message, "- Kirim /newpass untuk memperbarui password api")
