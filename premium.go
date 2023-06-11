@@ -87,7 +87,7 @@ func (b *bot) handlePremiumServer(update *echotron.Update) stateFn {
 				premiumVpnInfo.Domain = domain.Domain
 				premiumVpnInfo.CC = domain.Code
 
-				rows, err := db.New().Conn().Query("SELECT DISTINCT country_code FROM proxies WHERE vpn='shadowsocks'")
+				rows, err := db.New().Conn().Query("SELECT DISTINCT country_code FROM proxies WHERE vpn='shadowsocks' AND region='Asia'")
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -97,7 +97,9 @@ func (b *bot) handlePremiumServer(update *echotron.Update) stateFn {
 					var relayCode sql.NullString
 					rows.Scan(&relayCode)
 
-					rCodes = append(rCodes, relayCode.String)
+					if domain.Code != relayCode.String && relayCode.String != "" {
+						rCodes = append(rCodes, relayCode.String)
+					}
 				}
 				sort.Strings(rCodes)
 				relayCodes = append(relayCodes, rCodes...)
