@@ -3,6 +3,8 @@ package latinabot
 import (
 	"database/sql"
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/LalatinaHub/LatinaApi/common/member"
@@ -26,6 +28,7 @@ type PremiumDomainInfo struct {
 var (
 	premiumVpnInfo = PremiumVPNInfo{}
 	domains        = []PremiumDomainInfo{}
+	relayCodes     = []string{"Tanpa Relay"}
 )
 
 func (b *bot) handlePremiumType(update *echotron.Update) stateFn {
@@ -84,20 +87,20 @@ func (b *bot) handlePremiumServer(update *echotron.Update) stateFn {
 				premiumVpnInfo.Domain = domain.Domain
 				premiumVpnInfo.CC = domain.Code
 
-				var (
-					relayCodes = []string{"Tanpa Relay"}
-				)
 				rows, err := db.New().Conn().Query("SELECT DISTINCT country_code FROM proxies WHERE vpn='shadowsocks'")
 				if err != nil {
 					fmt.Println(err)
 				}
 
+				var rCodes = []string{}
 				for rows.Next() {
 					var relayCode sql.NullString
 					rows.Scan(&relayCode)
 
-					relayCodes = append(relayCodes, relayCode.String)
+					rCodes = append(rCodes, relayCode.String)
 				}
+				sort.Strings(rCodes)
+				relayCodes = append(relayCodes, rCodes...)
 
 				message := []string{"Silahkan pilih relay !"}
 				message = append(message, "\nSkema dengan relay:")
@@ -129,9 +132,20 @@ func (b *bot) handlePremiumCreate(update *echotron.Update) stateFn {
 			relayCode = update.CallbackQuery.Data
 		)
 
-		if len(relayCode) > 3 {
+		if len(relayCode) > 5 {
 			relayCode = premiumVpnInfo.CC
 		}
+
+		if page, err := strconv.Atoi(relayCode); err == nil {
+			b.EditMessageReplyMarkup(echotron.NewMessageID(update.ChatID(), update.CallbackQuery.Message.ID), &echotron.MessageReplyMarkup{
+				ReplyMarkup: echotron.InlineKeyboardMarkup{
+					InlineKeyboard: helper.BuildInlineKeyboardWithPage(relayCodes, page),
+				},
+			})
+
+			return b.handlePremiumCreate
+		}
+
 		if member.CreatePremiumAccount(update.ChatID(), premiumVpnInfo.VPN, premiumVpnInfo.Domain, relayCode) {
 			message = "Akun berhasil dibuat !"
 		} else {
