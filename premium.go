@@ -2,11 +2,14 @@ package latinabot
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
 	"sort"
 	"strconv"
 	"strings"
 
+	apiHelper "github.com/LalatinaHub/LatinaApi/api/helper"
 	"github.com/LalatinaHub/LatinaApi/common/member"
 	"github.com/LalatinaHub/LatinaBot/helper"
 	"github.com/LalatinaHub/LatinaSub-go/db"
@@ -87,20 +90,37 @@ func (b *bot) handlePremiumServer(update *echotron.Update) stateFn {
 				premiumVpnInfo.Domain = domain.Domain
 				premiumVpnInfo.CC = domain.Code
 
-				rows, err := db.New().Conn().Query("SELECT DISTINCT country_code FROM proxies WHERE vpn='shadowsocks' AND region='Asia'")
+				var buf = new(strings.Builder)
+				var proxies = []db.DBScheme{}
+				resp, err := apiHelper.Fetch(fmt.Sprintf("http://%s/relay", domain.Domain))
 				if err != nil {
 					fmt.Println(err)
 				}
+				defer resp.Body.Close()
+
+				io.Copy(buf, resp.Body)
+				if resp.StatusCode == 200 {
+					json.Unmarshal([]byte(buf.String()), &proxies)
+				}
 
 				var rCodes = []string{}
-				for rows.Next() {
-					var relayCode sql.NullString
-					rows.Scan(&relayCode)
+				for _, proxy := range proxies {
+					if domain.Code != proxy.CountryCode && proxy.CountryCode != "" {
+						isExists := func() bool {
+							for _, code := range rCodes {
+								if code == proxy.CountryCode {
+									return true
+								}
+							}
+							return false
+						}()
 
-					if domain.Code != relayCode.String && relayCode.String != "" {
-						rCodes = append(rCodes, relayCode.String)
+						if !isExists {
+							rCodes = append(rCodes, proxy.CountryCode)
+						}
 					}
 				}
+
 				sort.Strings(rCodes)
 				relayCodes = append(relayCodes, rCodes...)
 
