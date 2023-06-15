@@ -2,10 +2,15 @@ package latinabot
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/LalatinaHub/LatinaApi/common/member"
 	"github.com/NicoNex/echotron/v3"
+)
+
+var (
+	bannerUrl = os.Getenv("BANNER_URL")
 )
 
 func (b *bot) menu(update *echotron.Update) {
@@ -68,7 +73,11 @@ func (b *bot) menu(update *echotron.Update) {
 	message = append(message, "\nAmbil akun VPN gratis full speed dengan langkah mudah !")
 	message = append(message, "\n@d_fordlalatina")
 
-	go b.SendPhoto(echotron.NewInputFileURL("https://raw.githubusercontent.com/LalatinaHub/LatinaBot/b1387c6274230cd8f377155eb7c76bea149dbd0e/assets/Banner.png"), update.ChatID(), &echotron.PhotoOptions{
+	if bannerUrl == "" {
+		bannerUrl = "https://raw.githubusercontent.com/LalatinaHub/LatinaBot/main/assets/Banner.png"
+	}
+
+	go b.SendPhoto(echotron.NewInputFileURL(bannerUrl), update.ChatID(), &echotron.PhotoOptions{
 		Caption:   strings.Join(message, "\n"),
 		ParseMode: "HTML",
 		ReplyMarkup: echotron.InlineKeyboardMarkup{
