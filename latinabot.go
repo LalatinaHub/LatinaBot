@@ -96,7 +96,7 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 						go b.SendMessage("Berhasil menambahkan member premium !", update.ChatID(), nil)
 
 						if subs > 0 {
-							go b.SendMessage(fmt.Sprintf("Masa aktif premium kamu ditambahkan selama %d bulan !", subs), id, nil)
+							go b.SendMessage(fmt.Sprintf("Masa aktif premium kamu ditambahkan selama %d bulan !\n\nNb: Hubungi admin jika jumlah quota tidak bertambah", subs), id, nil)
 						} else if subs < 0 {
 							go b.SendMessage(fmt.Sprintf("Masa aktif premium kamu diturunkan selama %d bulan :(", subs), id, nil)
 						}
