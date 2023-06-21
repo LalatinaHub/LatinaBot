@@ -24,8 +24,9 @@ type PremiumVPNInfo struct {
 
 type PremiumDomainInfo struct {
 	Domain   string
-	Code     string
 	Populate int
+	Location string
+	Code     string
 }
 
 var (
@@ -43,24 +44,25 @@ func (b *bot) handlePremiumType(update *echotron.Update) stateFn {
 			message, domainsCode []string
 		)
 
-		rows, err := db.New().Conn().Query("SELECT domain, location, populate FROM domains")
+		rows, err := db.New().Conn().Query("SELECT domain, location, populate, code FROM domains")
 		if err != nil {
 			fmt.Println(err)
 		}
 
 		for rows.Next() {
 			var (
-				domain, location sql.NullString
-				populate         sql.NullInt16
+				domain, location, code sql.NullString
+				populate               sql.NullInt16
 			)
 
-			rows.Scan(&domain, &location, &populate)
+			rows.Scan(&domain, &location, &populate, &code)
 
-			domainsCode = append(domainsCode, location.String)
+			domainsCode = append(domainsCode, code.String)
 			domains = append(domains, PremiumDomainInfo{
 				Domain:   domain.String,
-				Code:     location.String,
 				Populate: int(populate.Int16),
+				Location: location.String,
+				Code:     code.String,
 			})
 		}
 
@@ -88,7 +90,7 @@ func (b *bot) handlePremiumServer(update *echotron.Update) stateFn {
 		for _, domain := range domains {
 			if domain.Code == update.CallbackQuery.Data {
 				premiumVpnInfo.Domain = domain.Domain
-				premiumVpnInfo.CC = domain.Code
+				premiumVpnInfo.CC = domain.Location
 
 				var buf = new(strings.Builder)
 				var proxies = []db.DBScheme{}
@@ -105,7 +107,7 @@ func (b *bot) handlePremiumServer(update *echotron.Update) stateFn {
 
 				var rCodes = []string{}
 				for _, proxy := range proxies {
-					if domain.Code != proxy.CountryCode && proxy.CountryCode != "" {
+					if premiumVpnInfo.CC != proxy.CountryCode && proxy.CountryCode != "" {
 						isExists := func() bool {
 							for _, code := range rCodes {
 								if code == proxy.CountryCode {
