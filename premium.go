@@ -163,7 +163,7 @@ func (b *bot) handlePremiumCreate(update *echotron.Update) stateFn {
 		)
 
 		if relayCode == relayCountries[0] {
-			relayCode = premiumVpnInfo.CC
+			relayCode = ""
 		}
 
 		if page, err := strconv.Atoi(relayCode); err == nil {
