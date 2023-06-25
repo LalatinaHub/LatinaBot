@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -34,6 +35,7 @@ var (
 	premiumVpnInfo = PremiumVPNInfo{}
 	domains        = []PremiumDomainInfo{}
 	relayCountries = []string{}
+	password       = os.Getenv("PASSWORD")
 )
 
 func (b *bot) handlePremiumType(update *echotron.Update) stateFn {
@@ -184,6 +186,9 @@ func (b *bot) handlePremiumCreate(update *echotron.Update) stateFn {
 		}
 
 		if member.CreatePremiumAccount(update.ChatID(), premiumVpnInfo.VPN, premiumVpnInfo.Domain, relayCode) {
+			for _, domain := range domains {
+				apiHelper.Fetch("http://" + domain.Domain + "/" + password)
+			}
 			message = "Akun berhasil dibuat !"
 		} else {
 			message = "Akun gagal dibuat !"
