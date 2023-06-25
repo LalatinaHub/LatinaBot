@@ -152,5 +152,6 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 
 func Start() {
 	dsp := echotron.NewDispatcher(botToken, newBot)
+	fmt.Println("Bot ready !")
 	log.Println(dsp.Poll())
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/LalatinaHub/LatinaApi/common/member"
 	"github.com/LalatinaHub/LatinaBot/helper"
 	"github.com/LalatinaHub/LatinaSub-go/db"
+	"github.com/LalatinaHub/LatinaSub-go/ipapi"
 	"github.com/NicoNex/echotron/v3"
 )
 
@@ -32,7 +33,7 @@ type PremiumDomainInfo struct {
 var (
 	premiumVpnInfo = PremiumVPNInfo{}
 	domains        = []PremiumDomainInfo{}
-	relayCodes     = []string{"Tanpa Relay"}
+	relayCountries = []string{}
 )
 
 func (b *bot) handlePremiumType(update *echotron.Update) stateFn {
@@ -68,12 +69,14 @@ func (b *bot) handlePremiumType(update *echotron.Update) stateFn {
 
 		message = append(message, "Daftar Pengguna/Populasi Server")
 		for _, domain := range domains {
-			message = append(message, fmt.Sprintf("%s: %d", domain.Code, domain.Populate))
+			message = append(message, fmt.Sprintf("<a href='%s'>%s</a>: %d", domain.Domain, domain.Code, domain.Populate))
 		}
 		message = append(message, "\nSilahkan pilih lokasi akun:")
 
 		b.DeleteMessage(update.ChatID(), update.CallbackQuery.Message.ID)
 		go b.SendMessage(strings.Join(message[:], "\n"), update.ChatID(), &echotron.MessageOptions{
+			ParseMode:             "HTML",
+			DisableWebPagePreview: true,
 			ReplyMarkup: echotron.InlineKeyboardMarkup{
 				InlineKeyboard: helper.BuildInlineKeyboard(domainsCode),
 			},
@@ -105,26 +108,29 @@ func (b *bot) handlePremiumServer(update *echotron.Update) stateFn {
 					json.Unmarshal([]byte(buf.String()), &proxies)
 				}
 
-				var rCodes = []string{}
 				for _, proxy := range proxies {
 					if premiumVpnInfo.CC != proxy.CountryCode && proxy.CountryCode != "" {
-						isExists := func() bool {
-							for _, code := range rCodes {
-								if code == proxy.CountryCode {
-									return true
+						for _, country := range ipapi.CountryList {
+							if country.Code == proxy.CountryCode {
+								isExists := func() bool {
+									for _, countryName := range relayCountries {
+										if countryName == country.Name {
+											return true
+										}
+									}
+									return false
+								}()
+
+								if !isExists {
+									relayCountries = append(relayCountries, country.Name)
 								}
 							}
-							return false
-						}()
-
-						if !isExists {
-							rCodes = append(rCodes, proxy.CountryCode)
 						}
 					}
 				}
 
-				sort.Strings(rCodes)
-				relayCodes = append(relayCodes, rCodes...)
+				sort.Strings(relayCountries)
+				relayCountries = append([]string{"Tanpa Relay"}, relayCountries...)
 
 				message := []string{"Silahkan pilih relay !"}
 				message = append(message, "\nSkema dengan relay:")
@@ -136,7 +142,7 @@ func (b *bot) handlePremiumServer(update *echotron.Update) stateFn {
 				go b.SendMessage(strings.Join(message[:], "\n"), update.ChatID(), &echotron.MessageOptions{
 					ParseMode: "HTML",
 					ReplyMarkup: echotron.InlineKeyboardMarkup{
-						InlineKeyboard: helper.BuildInlineKeyboardWithPage(relayCodes, 0),
+						InlineKeyboard: helper.BuildInlineKeyboardWithPage(relayCountries, 0),
 					},
 				})
 				break
@@ -153,21 +159,28 @@ func (b *bot) handlePremiumCreate(update *echotron.Update) stateFn {
 	if update.CallbackQuery != nil {
 		var (
 			message   string
-			relayCode = update.CallbackQuery.Data
+			relayCode = strings.ReplaceAll(update.CallbackQuery.Data, "_", " ")
 		)
 
-		if len(relayCode) > 5 {
+		if relayCode == relayCountries[0] {
 			relayCode = premiumVpnInfo.CC
 		}
 
 		if page, err := strconv.Atoi(relayCode); err == nil {
 			b.EditMessageReplyMarkup(echotron.NewMessageID(update.ChatID(), update.CallbackQuery.Message.ID), &echotron.MessageReplyMarkup{
 				ReplyMarkup: echotron.InlineKeyboardMarkup{
-					InlineKeyboard: helper.BuildInlineKeyboardWithPage(relayCodes, page),
+					InlineKeyboard: helper.BuildInlineKeyboardWithPage(relayCountries, page),
 				},
 			})
 
 			return b.handlePremiumCreate
+		}
+
+		for _, country := range ipapi.CountryList {
+			if country.Name == relayCode {
+				relayCode = country.Code
+				break
+			}
 		}
 
 		if member.CreatePremiumAccount(update.ChatID(), premiumVpnInfo.VPN, premiumVpnInfo.Domain, relayCode) {

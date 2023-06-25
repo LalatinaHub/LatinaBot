@@ -68,7 +68,7 @@ func (b *bot) menu(update *echotron.Update) {
 
 	message = append(message, "- Kirim /newpass untuk memperbarui password api")
 	message = append(message, "- Segera ganti password apabila bocor ke publik")
-	message = append(message, "- Bisa refund selama quota diatas 95000 mb")
+	message = append(message, "- Bisa full refund selama quota diatas 90%, dibawah itu menyesuaikan sisa quota")
 
 	message = append(message, "\nAmbil akun VPN gratis full speed dengan langkah mudah !")
 	message = append(message, "\n@d_fordlalatina")
