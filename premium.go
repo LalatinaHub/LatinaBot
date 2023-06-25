@@ -164,10 +164,6 @@ func (b *bot) handlePremiumCreate(update *echotron.Update) stateFn {
 			relayCode = strings.ReplaceAll(update.CallbackQuery.Data, "_", " ")
 		)
 
-		if relayCode == relayCountries[0] {
-			relayCode = ""
-		}
-
 		if page, err := strconv.Atoi(relayCode); err == nil {
 			b.EditMessageReplyMarkup(echotron.NewMessageID(update.ChatID(), update.CallbackQuery.Message.ID), &echotron.MessageReplyMarkup{
 				ReplyMarkup: echotron.InlineKeyboardMarkup{
@@ -179,8 +175,16 @@ func (b *bot) handlePremiumCreate(update *echotron.Update) stateFn {
 		}
 
 		for _, country := range ipapi.CountryList {
-			if country.Name == relayCode {
-				relayCode = country.Code
+			if relayCode == relayCountries[0] {
+				relayCode = ""
+				break
+			} else if country.Name == relayCode {
+				if country.Code == premiumVpnInfo.CC {
+					relayCode = ""
+				} else {
+					relayCode = country.Code
+				}
+
 				break
 			}
 		}
