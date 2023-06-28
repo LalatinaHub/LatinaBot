@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/LalatinaHub/LatinaApi v0.0.0-20230611050813-6802bea35936
-	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230620042633-2c8efbc5cbaf
+	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230628112129-b559497f9299
 	github.com/NicoNex/echotron/v3 v3.25.0
 )
 

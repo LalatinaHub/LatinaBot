@@ -143,6 +143,11 @@ func (b *bot) handleMessage(update *echotron.Update) stateFn {
 				})
 
 				return b.handlePremiumType
+			} else {
+				b.AnswerCallbackQuery(update.CallbackQuery.ID, &echotron.CallbackQueryOptions{
+					Text:      "Fitur khusus premium",
+					ShowAlert: true,
+				})
 			}
 		}
 	}

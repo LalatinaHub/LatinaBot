@@ -85,7 +85,7 @@ func (b *bot) menu(update *echotron.Update) {
 				{
 					{
 						Text: "😎 Ambil Akun",
-						URL:  "https://fool.azurewebsites.net/get?format=raw&region=Asia&cdn=bug.com&sni=bug.com&pass=" + password,
+						URL:  "https://fool.azurewebsites.net/get?format=raw&region=Asia&cdn=speed.cloudflare.com&sni=google.com&pass=" + password,
 					},
 					{
 						Text:         "Buat Akun (Premium) ✨",
