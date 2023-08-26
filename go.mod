@@ -5,8 +5,8 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/LalatinaHub/LatinaApi v0.0.0-20230611050813-6802bea35936
-	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230826000836-1a961083f8e8
+	github.com/LalatinaHub/LatinaApi v0.0.0-20230826002457-0575c2547ddb
+	github.com/LalatinaHub/LatinaSub-go v0.0.0-20230826004229-80a33a5abb43
 	github.com/NicoNex/echotron/v3 v3.26.0
 )
 
