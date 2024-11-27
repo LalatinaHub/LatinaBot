@@ -1,0 +1,24 @@
+{
+  "name": "latinabot",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@google-cloud/vision": "^4.3.2",
+    "@grammyjs/conversations": "^1.2.0",
+    "@grammyjs/files": "^1.1.1",
+    "@grammyjs/ratelimiter": "^1.2.1",
+    "@supabase/supabase-js": "^2.46.1",
+    "dotenv": "^16.4.5",
+    "generate-password": "^1.7.1",
+    "grammy": "^1.32.0",
+    "html-entities": "^2.5.2",
+    "telegraf-middleware-console-time": "^2.1.0",
+    "uuid": "^11.0.3"
+  }
+}
