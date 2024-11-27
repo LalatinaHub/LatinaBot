@@ -91,7 +91,7 @@ bot.on("message:photo", async (ctx) => {
 
       await db.putPremium({
         ...user.premium,
-        quota: (user.premium?.quota as number) > 0 ? (user.premium?.quota as number) + 100000 : 100000,
+        quota: (user.premium?.quota as number) > 0 ? (user.premium?.quota as number) + 250000 : 250000,
       });
       delete user.premium;
       await db.putUser({
@@ -190,6 +190,10 @@ bot.callbackQuery("s/adblock", async (ctx) => {
     adblock: !user.premium?.adblock,
   });
 
+  ctx.answerCallbackQuery({
+    text: "Kamu harus bikin akun vpn baru atau tunggu server restart untuk merasakan perubahannya.",
+    show_alert: true,
+  });
   return templateStart(ctx, true);
 });
 

@@ -20,8 +20,11 @@ export class Database {
   }
 
   async postUser(id: number) {
+    const expired = new Date();
+    expired.setDate(expired.getDate() + 1);
+
     const password = pswd.generate({ length: 8, numbers: true });
-    const { error } = await this.client.from("users").insert({ id: id, expired: new Date(), password: password });
+    const { error } = await this.client.from("users").insert({ id: id, expired: expired, password: password });
     if (error) throw error;
 
     await this.postPremium(id);
