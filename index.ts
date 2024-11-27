@@ -197,6 +197,14 @@ bot.callbackQuery("s/adblock", async (ctx) => {
 bot.start({
   drop_pending_updates: true,
   onStart: () => {
-    console.log("Bot Ready!");
+    const server = Bun.serve({
+      port: 8080,
+      fetch(request) {
+        return new Response("Welcome to Bun!");
+      },
+    });
+
+    console.log("Bot ready!");
+    console.log(`Listening on localhost:${server.port}`);
   },
 });
