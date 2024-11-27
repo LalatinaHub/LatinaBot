@@ -18,12 +18,12 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag latinabot:$(date +%s)
+      run: docker build . --file Dockerfile --tag ghcr.io/lalatinahub/latinabot:$(date +%s)
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: lalatinahub/latinabot
+        images: ghcr.io/lalatinahub/latinabot
     - name: Build and push Docker image
       id: push
       uses: docker/build-push-action@v6
