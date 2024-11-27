@@ -148,7 +148,8 @@ bot.callbackQuery("t/donasi", (ctx) => {
   message += "1. Buka halaman donasi\n";
   message += "2. Selesaikan donasi\n";
   message += "3. Simpan bukti donasi\n";
-  message += "4. Kirimkan bukti donasi ke bot\n";
+  message += "4. Kirimkan bukti donasi ke bot\n\n\n";
+  message += "↓ Tombol Donasi";
 
   ctx.replyWithPhoto("https://okzpqehvbvtzrjzohjtw.supabase.co/storage/v1/object/public/assets/donasi_1.png", {
     caption: "↑ Contoh bukti donasi ↑\n\n" + message,

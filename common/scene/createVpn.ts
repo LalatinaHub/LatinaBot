@@ -73,13 +73,13 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
 
   while (!createVpnData.relay) {
     await ctx.editMessageCaption({
-      caption: `Silahkan pilih relay\n\nPage: ${createVpnData.page || 0 + 1}/${Math.round(
-        createVpnData.relaysCC?.length || 0 / 6
+      caption: `Silahkan pilih relay\n\nPage: ${(createVpnData.page || 0) + 1}/${Math.round(
+        (createVpnData.relaysCC?.length || 6) / 6
       )}`,
       reply_markup: InlineKeyboard.from([
         ...(() => {
           const keyboard = [];
-          for (let i = createVpnData.page || 0 * 3; i < (createVpnData.page || 0) * 3 + 3; i++) {
+          for (let i = (createVpnData.page || 0) * 3; i < (createVpnData.page || 0) * 3 + 3; i++) {
             keyboard.push(keyboardMap[i]);
           }
 
