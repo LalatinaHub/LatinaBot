@@ -5,6 +5,7 @@ import { conversations, createConversation } from "@grammyjs/conversations";
 import { generateUpdateMiddleware } from "telegraf-middleware-console-time";
 import { encode } from "html-entities";
 import { v4 as uuidv4 } from "uuid";
+import { fetch } from "bun";
 import pswd from "generate-password";
 import "dotenv/config";
 
@@ -196,13 +197,16 @@ bot.callbackQuery("s/adblock", async (ctx) => {
 
 bot.start({
   drop_pending_updates: true,
-  onStart: () => {
+  onStart: async () => {
     const server = Bun.serve({
       port: 8080,
       fetch(request) {
         return new Response("Welcome to Bun!");
       },
     });
+
+    const cred = await fetch(process.env.SERVICE_ACCOUNT_URL || "");
+    Bun.write("./gcloud-cred.json", cred);
 
     console.log("Bot ready!");
     console.log(`Listening on localhost:${server.port}`);
