@@ -43,9 +43,6 @@ bot.use(async (ctx, next) => {
   ctx.replyWithChatAction("typing");
 
   if (ctx.chat?.type != "private") return;
-  if (ctx.from?.id != 732796378) {
-    return ctx.reply("Bot dalam perbaikan!");
-  }
 
   ctx.foolish = {
     user: async () => {
