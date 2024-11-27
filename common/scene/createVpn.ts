@@ -20,9 +20,9 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   };
 
   let message: string = "Pilih protokol sesuai kebutuhan:\n";
-  message += "- VMess: Cepat dan stabil, cocok buat streaming atau browsing.\n";
-  message += "- VLESS: Hemat data, ideal untuk jaringan kurang stabil.\n";
-  message += "- Trojan: Super aman, cocok untuk kamu yang peduli privasi.\n\n";
+  message += "• VMess: Cepat dan stabil, cocok buat streaming atau browsing.\n";
+  message += "• VLESS: Hemat data, ideal untuk jaringan kurang stabil.\n";
+  message += "• Trojan: Super aman, cocok untuk kamu yang peduli privasi.\n\n";
   message += "Bebas ganti protokol kapan aja!";
   await ctx.editMessageCaption({
     caption: message,
@@ -81,15 +81,15 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   message = "Fool VPN menyediakan jalur relay dengan skema:\n";
   message += "Kamu ➡️ Server Fool VPN ➡️ Server Relay ➡️ Internet\n\n";
   message += "Keuntungan relay:\n";
-  message += "- Privasi Lebih Terjaga: Alamat IP asli kamu gak kelihatan.\n";
-  message += "- Anti Blokir: Bebas akses meski ada pembatasan jaringan.\n";
-  message += "- Koneksi Stabil: Relay bikin koneksi tetap lancar meski di jaringan ketat.\n\n";
+  message += "• Privasi Lebih Terjaga: Alamat IP asli kamu gak kelihatan.\n";
+  message += "• Anti Blokir: Bebas akses meski ada pembatasan jaringan.\n";
+  message += "• Koneksi Stabil: Relay bikin koneksi tetap lancar meski di jaringan ketat.\n\n";
   message += "Catatan\n";
-  message += "- Relay nambahin latensi/ping\n";
-  message += "- Relay gak bikin lemot (tergantung server relay)";
+  message += "• Relay nambahin latensi/ping\n";
+  message += "• Relay gak bikin lemot (tergantung server relay)";
   while (!createVpnData.relay) {
     await ctx.editMessageCaption({
-      caption: `Silahkan pilih relay\n\nPage: ${(createVpnData.page || 0) + 1}/${Math.round(
+      caption: `${message}\n\n${(createVpnData.page || 0) + 1}/${Math.round(
         (createVpnData.relaysCC?.length || 6) / 6
       )}`,
       reply_markup: InlineKeyboard.from([
