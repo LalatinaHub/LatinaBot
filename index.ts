@@ -14,6 +14,7 @@ import { Database } from "./modules/database";
 import type { FoolishContext } from "./common/context";
 import { templateStart } from "./template/start";
 import { createVpn } from "./common/scene/createVpn";
+import { createWildcard } from "./common/scene/createWildcard";
 import { scanOcrUrl } from "./modules/helper/ocr";
 import { Trakteer } from "./modules/trakteer";
 import { reloadServers } from "./modules/helper/server";
@@ -64,6 +65,7 @@ bot.use(limit());
 bot.use(session({ initial: () => ({ lastRestart: new Date() }) }));
 bot.use(conversations());
 bot.use(createConversation(createVpn));
+bot.use(createConversation(createWildcard));
 bot.use(generateUpdateMiddleware());
 
 // Commands
@@ -201,6 +203,42 @@ bot.callbackQuery("c/uuid", async (ctx) => {
   ctx.session.lastRestart = new Date();
   await reloadServers();
   return templateStart(ctx, true);
+});
+
+bot.callbackQuery("c/wildcard", async (ctx) => {
+  const user = await ctx.foolish.user();
+
+  let now = new Date();
+  let expired = new Date(user.expired);
+  if (expired.getTime() - now.getTime() < 0) {
+    return ctx.answerCallbackQuery({
+      text: "YDDA\nYang Donasi Donasi Ajah :>",
+      show_alert: true,
+    });
+  }
+
+  await ctx.editMessageCaption({
+    caption: "OK, mau domain apa ?\n\ncontoh: zoom.us",
+  });
+  ctx.conversation.enter("createWildcard");
+});
+
+bot.callbackQuery("l/wildcard", async (ctx) => {
+  const wildcardList = await db.getWildcards();
+
+  let message = "Daftar Wildcard:\n";
+  message += "<blockquote expandable>";
+  for (const wildcard of wildcardList) {
+    message += `• ${wildcard.domain}\n`;
+  }
+  message += "</blockquote>";
+
+  ctx.reply(message, {
+    parse_mode: "HTML",
+    link_preview_options: {
+      is_disabled: true,
+    },
+  });
 });
 
 bot.callbackQuery("s/adblock", async (ctx) => {

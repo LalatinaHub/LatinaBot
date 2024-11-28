@@ -68,6 +68,7 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
     ],
     [InlineKeyboard.text("Ganti Password", "c/pass"), InlineKeyboard.text("Ganti UUID", "c/uuid")],
     [InlineKeyboard.text(`${user.premium?.adblock ? "Matikan" : "Hidupkan"} Adblock`, "s/adblock")],
+    [InlineKeyboard.text("List Wildcard", "l/wildcard"), InlineKeyboard.text("Buat Wildcard", "c/wildcard")],
     [InlineKeyboard.text("❗️ Desclaimer ❗️", "t/desclaimer")],
     [
       InlineKeyboard.text("Cara Donasi", "t/donasi"),

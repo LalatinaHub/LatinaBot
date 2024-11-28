@@ -5,7 +5,10 @@ export async function reloadServers() {
   const db = new Database();
   const servers = await db.getServers();
 
+  const serverFetchs = [];
   for (const server of servers) {
-    await fetch(`https://${server.domain}/${process.env.SERVER_PASSWORD}`);
+    serverFetchs.push(fetch(`https://${server.domain}/${process.env.SERVER_PASSWORD}`));
   }
+
+  await Promise.all(serverFetchs);
 }

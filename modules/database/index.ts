@@ -12,6 +12,18 @@ export class Database {
     return data;
   }
 
+  async getWildcards() {
+    const { data, error } = await this.client.from("wildcards").select();
+    if (error) throw error;
+
+    return data;
+  }
+
+  async postWildcard(domain: string) {
+    const { error } = await this.client.from("wildcards").upsert({ domain: domain });
+    if (error) throw error;
+  }
+
   async getUser(id: number) {
     const { data, error } = await this.client.from("users").select("*, premium (*)").eq("id", id);
     if (error) throw error;
