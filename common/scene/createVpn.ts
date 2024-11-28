@@ -123,10 +123,6 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   delete createVpnData.page;
   createVpnData.relay = createVpnData.relay == "Tanpa Relay" ? "" : createVpnData.relay;
 
-  ctx.answerCallbackQuery({
-    text: "Pastikan opsi pilihan kamu ya!\nServer akan restart saat kamu konfirmasi.",
-    show_alert: true,
-  });
   return ctx.editMessageCaption({
     caption: `${JSON.stringify(createVpnData, null, "\t")}`,
     reply_markup: InlineKeyboard.from([
