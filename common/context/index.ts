@@ -1,8 +1,9 @@
-import { Context } from "grammy";
+import { Context, type SessionFlavor } from "grammy";
 import { type Conversation, type ConversationFlavor } from "@grammyjs/conversations";
 import { type FileFlavor } from "@grammyjs/files";
+import { type SessionData } from "./session";
 
-type _Context = Context & ConversationFlavor;
+type _Context = Context & ConversationFlavor & SessionFlavor<SessionData>;
 type _FoolishContext = {
   foolish: {
     user: () => Promise<{
@@ -19,6 +20,7 @@ type _FoolishContext = {
         adblock: boolean;
       };
     }>;
+    timeBetweenRestart: (ctx: FoolishContext) => number;
   };
 };
 

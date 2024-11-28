@@ -53,12 +53,15 @@ bot.use(async (ctx, next) => {
         await db.postUser(ctx.from?.id as number);
       }
     },
+    timeBetweenRestart: (ctx) => {
+      return (new Date().getTime() - ctx.session.lastRestart.getTime()) / 60 / 1000;
+    },
   };
 
   return next();
 });
 bot.use(limit());
-bot.use(session({ initial: () => ({}) }));
+bot.use(session({ initial: () => ({ lastRestart: new Date() }) }));
 bot.use(conversations());
 bot.use(createConversation(createVpn));
 bot.use(generateUpdateMiddleware());
@@ -111,6 +114,13 @@ bot.callbackQuery("m/refresh", (ctx) => {
   return templateStart(ctx, true);
 });
 bot.callbackQuery("c/vpn", async (ctx) => {
+  const timeBetween = ctx.foolish.timeBetweenRestart(ctx);
+  if (timeBetween < 5) {
+    return ctx.answerCallbackQuery({
+      text: `Ups, ada delay ${5 - parseInt(timeBetween.toString())} menit`,
+      show_alert: true,
+    });
+  }
   await ctx.conversation.enter("createVpn");
 });
 
@@ -173,6 +183,14 @@ bot.callbackQuery("c/pass", async (ctx) => {
 });
 
 bot.callbackQuery("c/uuid", async (ctx) => {
+  const timeBetween = ctx.foolish.timeBetweenRestart(ctx);
+  if (timeBetween < 5) {
+    return ctx.answerCallbackQuery({
+      text: `Ups, ada delay ${5 - parseInt(timeBetween.toString())} menit`,
+      show_alert: true,
+    });
+  }
+
   const user = await ctx.foolish.user();
   await db.putPremium({
     ...user.premium,
@@ -191,7 +209,7 @@ bot.callbackQuery("s/adblock", async (ctx) => {
   });
 
   ctx.answerCallbackQuery({
-    text: "Kamu harus bikin akun vpn baru atau tunggu server restart untuk merasakan perubahannya.",
+    text: "Kamu harus bikin akun vpn baru, uuid baru, atau tunggu server restart untuk merasakan perubahannya.",
     show_alert: true,
   });
   return templateStart(ctx, true);
