@@ -45,6 +45,7 @@ export class Cloudflare {
       name: name,
       type: "A",
       content: content,
+      proxied: true
     });
 
     return record;
