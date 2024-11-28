@@ -135,6 +135,7 @@ bot.callbackQuery("confirm", async (ctx) => {
     cc: data.relay,
   });
 
+  ctx.session.lastRestart = new Date();
   await reloadServers();
   return templateStart(ctx, true);
 });
@@ -197,6 +198,7 @@ bot.callbackQuery("c/uuid", async (ctx) => {
     password: uuidv4(),
   });
 
+  ctx.session.lastRestart = new Date();
   await reloadServers();
   return templateStart(ctx, true);
 });
