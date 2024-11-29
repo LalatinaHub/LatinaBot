@@ -21,13 +21,14 @@ import { reloadServers } from "./modules/helper/server";
 
 const bot = new Bot<FoolishContext>(process.env.BOT_TOKEN as string);
 const db = new Database();
+const adminId = process.env.ADMIN_ID;
 
 // Config
 bot.api.config.use(hydrateFiles(bot.token));
 
 // Error handler
 bot.catch((err) => {
-  err.ctx.reply("Runtime error happened!");
+  err.ctx.reply(`Runtime error happened!\bCoba bilang <a href="tg://user?id=${adminId}/d_fordlalatina">admin</a>`);
 
   let message: string = "<b>Error Report</b>\n";
   message += `From: ${err.ctx.from?.id}\n`;
@@ -35,7 +36,7 @@ bot.catch((err) => {
   message += `Error Message: ${encode(err.message)}\n`;
   message += `Error Stack: \n${encode(err.stack)}`;
 
-  return bot.api.sendMessage(process.env.ADMIN_ID as string, message, {
+  return bot.api.sendMessage(adminId as string, message, {
     parse_mode: "HTML",
   });
 });
@@ -77,38 +78,42 @@ bot.command("start", async (ctx) => {
 bot.on("message:photo", async (ctx) => {
   const photo = await ctx.getFile();
   const photoText = await scanOcrUrl(photo.getUrl());
-  const photoTextMatch = photoText?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/gm) || [];
-  const orderId = photoTextMatch[photoTextMatch.length - 1];
+  const photoTextMatch = photoText?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/gm);
+  if (photoTextMatch) {
+    const orderId = photoTextMatch[photoTextMatch.length - 1];
 
-  if (await db.getDonation(orderId)) {
-    return ctx.reply("Order ID Expired!");
-  }
-
-  const donations = await Trakteer.getDonations();
-  for (const donation of donations.result.data) {
-    if (donation.order_id == orderId) {
-      const user = await ctx.foolish.user();
-
-      let now = new Date();
-      let expired = new Date(user.expired);
-      if (expired.getTime() - now.getTime() < 0) expired = now;
-      expired.setDate(expired.getDate() + 30);
-
-      await db.putPremium({
-        ...user.premium,
-        quota: (user.premium?.quota as number) > 0 ? (user.premium?.quota as number) + 250000 : 250000,
-      });
-      delete user.premium;
-      await db.putUser({
-        ...user,
-        expired: expired.toISOString().split("T")[0],
-      });
-
-      await db.postDonation(orderId);
-      return templateStart(ctx);
+    if (await db.getDonation(orderId)) {
+      return ctx.reply("Order ID Expired!");
     }
+
+    const donations = await Trakteer.getDonations();
+    for (const donation of donations.result.data) {
+      if (donation.order_id == orderId) {
+        const user = await ctx.foolish.user();
+
+        let now = new Date();
+        let expired = new Date(user.expired);
+        if (expired.getTime() - now.getTime() < 0) expired = now;
+        expired.setDate(expired.getDate() + 30);
+
+        await db.putPremium({
+          ...user.premium,
+          quota: (user.premium?.quota as number) > 0 ? (user.premium?.quota as number) + 250000 : 250000,
+        });
+        delete user.premium;
+        await db.putUser({
+          ...user,
+          expired: expired.toISOString().split("T")[0],
+        });
+
+        await db.postDonation(orderId);
+        return templateStart(ctx);
+      }
+    }
+    return ctx.reply("Order ID Invalid!");
   }
-  return ctx.reply("Order ID Invalid!");
+
+  return ctx.reply("Gagal membaca Order ID!\nCoba crop fotonya biar lebih jelas.");
 });
 
 // Callback query
@@ -161,7 +166,8 @@ bot.callbackQuery("t/donasi", (ctx) => {
   message += "1. Buka halaman donasi\n";
   message += "2. Selesaikan donasi\n";
   message += "3. Simpan bukti donasi\n";
-  message += "4. Kirimkan bukti donasi ke bot\n\n\n";
+  message += "4. Kirimkan bukti donasi ke bot\n";
+  message += "5. Crop fotonya biar lebih jelas (optional)\n\n\n";
   message += "↓ Tombol Donasi";
 
   ctx.replyWithPhoto("https://okzpqehvbvtzrjzohjtw.supabase.co/storage/v1/object/public/assets/donasi_1.png", {
@@ -224,6 +230,7 @@ bot.callbackQuery("c/wildcard", async (ctx) => {
 });
 
 bot.callbackQuery("l/wildcard", async (ctx) => {
+  const servers = await db.getServers();
   const wildcardList = await db.getWildcards();
 
   let message = "Daftar Wildcard:\n";
@@ -231,7 +238,10 @@ bot.callbackQuery("l/wildcard", async (ctx) => {
   for (const wildcard of wildcardList) {
     message += `• ${wildcard.domain}\n`;
   }
-  message += "</blockquote>";
+  message += "</blockquote>\n\n";
+
+  message += "Contoh:\n";
+  message += `<code>${wildcardList[0].domain}.${servers[0].domain}</code>`;
 
   ctx.reply(message, {
     parse_mode: "HTML",

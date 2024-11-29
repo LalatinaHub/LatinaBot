@@ -15,10 +15,10 @@ export class DNS {
     const servers = await this.db.getServers();
     const wildcards = await this.db.getWildcards();
     for (const server of servers) {
-      await this.postDNS(server.domain, server.ip);
+      await this.postDNS(server.domain, server.ip, false);
       let wildcardFetchs: Promise<Record>[] = [];
       for (const wildcard of wildcards) {
-        wildcardFetchs.push(this.postDNS(`${wildcard.domain}.${server.domain}`, server.ip));
+        wildcardFetchs.push(this.postDNS(`${wildcard.domain}.${server.domain}`, server.ip, true));
 
         if (wildcardFetchs.length >= 10) {
           await Promise.all(wildcardFetchs).finally(() => {
@@ -45,8 +45,8 @@ export class DNS {
     return dns;
   }
 
-  async postDNS(name: string, content: string) {
-    return await this.cloudflare.postDNSRecord(name, content);
+  async postDNS(name: string, content: string, proxied: boolean) {
+    return await this.cloudflare.postDNSRecord(name, content, proxied);
   }
 
   async flushDNS() {

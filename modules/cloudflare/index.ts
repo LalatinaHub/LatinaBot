@@ -33,7 +33,7 @@ export class Cloudflare {
     return records.result;
   }
 
-  async postDNSRecord(name: string, content: string) {
+  async postDNSRecord(name: string, content: string, proxied: boolean) {
     const zone = await this.getZone();
     const records = await this.getDNSRecords();
     for (const record of records) {
@@ -45,7 +45,7 @@ export class Cloudflare {
       name: name,
       type: "A",
       content: content,
-      proxied: true
+      proxied: proxied,
     });
 
     return record;
