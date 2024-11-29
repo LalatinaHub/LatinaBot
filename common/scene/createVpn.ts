@@ -38,20 +38,48 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   createVpnData.vpn = (await conversation.waitForCallbackQuery(["vmess", "vless", "trojan"])).callbackQuery.data;
 
   const servers = await db.getServers();
+  const serversInfo: Promise<{ org: string; ping: number }>[] = [];
+  for (const server of servers) {
+    const timeStart = new Date().getTime();
+    serversInfo.push(
+      fetch("https://" + server.domain + "/info").then(async (res) => {
+        let result = {
+          org: "Unknown",
+          ping: 0,
+        };
+        if (res.status == 200) {
+          const json = await res.json();
+          result = {
+            org: json.org,
+            ping: new Date().getTime() - timeStart,
+          };
+        }
+
+        return result;
+      })
+    );
+  }
+  await Promise.all(serversInfo);
   message = "Pilih server kesukaanmu!\n";
   message += "Sorry kalo masih dikit, kalo banyak yang donasi pasti makin banyak nantinya 😉\n\n";
-  message += "<b>Penghuni server</b>\n";
-  for (const server of servers) {
+  message += "<blockquote expandable>";
+  message += "<b>Server's Stats</b>\n\n";
+  for (const i in servers) {
+    const server = servers[i];
+    const serverInfo = serversInfo[i];
     message += `• <b>${server.code}</b> [${server.tenant}/${server.max_tenant}]\n`;
+    message += `•• 📡 ${(await serverInfo).ping} ms\n`;
+    message += `•• 🪪 ${(await serverInfo).org}\n`;
     if (server.tenant >= server.max_tenant) {
-      message += "•• Penuh ✋🏿\n";
+      message += "•• 😭 Penuh\n";
     } else if (server.tenant <= parseInt((server.max_tenant / 2).toString())) {
-      message += "•• Aman 👍🏻 \n";
+      message += "•• 😋 Aman\n";
     } else {
-      message += "•• Boleh lah 👌\n";
+      message += "•• 😁 Boleh lah\n";
     }
     message += "\n";
   }
+  message += "</blockquote>";
   await ctx.editMessageCaption({
     caption: message,
     parse_mode: "HTML",

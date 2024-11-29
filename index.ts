@@ -1,4 +1,5 @@
 import { Bot, session } from "grammy";
+import { run } from "@grammyjs/runner";
 import { limit } from "@grammyjs/ratelimiter";
 import { hydrateFiles } from "@grammyjs/files";
 import { conversations, createConversation } from "@grammyjs/conversations";
@@ -18,6 +19,7 @@ import { createWildcard } from "./common/scene/createWildcard";
 import { scanOcrUrl } from "./modules/helper/ocr";
 import { Trakteer } from "./modules/trakteer";
 import { reloadServers } from "./modules/helper/server";
+import { cleanExceededQuota, cleanExpiredUsers } from "./modules/helper/users";
 
 const bot = new Bot<FoolishContext>(process.env.BOT_TOKEN as string);
 const db = new Database();
@@ -28,7 +30,7 @@ bot.api.config.use(hydrateFiles(bot.token));
 
 // Error handler
 bot.catch((err) => {
-  err.ctx.reply(`Runtime error happened!\bCoba bilang <a href="tg://user?id=${adminId}">admin</a>`, {
+  err.ctx.reply(`Waduh error!\nCoba bilang <a href="tg://user?id=${adminId}">admin</a>`, {
     parse_mode: "HTML",
   });
 
@@ -65,6 +67,7 @@ bot.use(async (ctx, next) => {
 
   return next();
 });
+
 bot.use(limit());
 bot.use(session({ initial: () => ({ lastRestart: new Date() }) }));
 bot.use(conversations());
@@ -136,6 +139,15 @@ bot.callbackQuery("c/vpn", async (ctx) => {
       show_alert: true,
     });
   }
+
+  const user = await ctx.foolish.user();
+  if ((user.premium?.quota as number) <= 10) {
+    return ctx.answerCallbackQuery({
+      text: "Kuota kamu habis kak!",
+      show_alert: true,
+    });
+  }
+
   await ctx.conversation.enter("createVpn");
 });
 
@@ -156,7 +168,7 @@ bot.callbackQuery("confirm", async (ctx) => {
       ctx.foolish.fetchsList.push(
         db.putServer({
           ...server,
-          tenant: server.tenant - 1,
+          tenant: server.tenant > 0 ? server.tenant - 1 : 0,
         })
       );
     }
@@ -295,20 +307,26 @@ bot.callbackQuery("s/adblock", async (ctx) => {
   return templateStart(ctx, true);
 });
 
-bot.start({
-  drop_pending_updates: true,
-  onStart: async () => {
-    const server = Bun.serve({
-      port: 8080,
-      fetch(request) {
-        return new Response("Welcome to Bun!");
-      },
-    });
+(async () => {
+  run(bot);
 
-    const cred = await fetch(process.env.SERVICE_ACCOUNT_URL || "");
-    Bun.write("./gcloud-cred.json", cred);
+  const server = Bun.serve({
+    port: 8080,
+    fetch(request) {
+      return new Response("Welcome to Bun!");
+    },
+  });
 
-    console.log("Bot ready!");
-    console.log(`Listening on localhost:${server.port}`);
-  },
-});
+  const cred = await fetch(process.env.SERVICE_ACCOUNT_URL || "");
+  Bun.write("./gcloud-cred.json", cred);
+
+  console.log("Bot ready!");
+  console.log(`Listening on localhost:${server.port}`);
+
+  // Interval functions
+  setInterval(async () => {
+    console.log("Running interval functions...");
+    await cleanExpiredUsers();
+    await cleanExceededQuota();
+  }, 1000 * 60 * 5);
+})();

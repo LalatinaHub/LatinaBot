@@ -1,17 +1,19 @@
 import { InlineKeyboard, type CallbackQueryContext, type CommandContext } from "grammy";
 import type { FoolishContext } from "../common/context";
 import { Trakteer } from "../modules/trakteer";
+import { getCard } from "../modules/tarot";
 
 type CtxContext = CommandContext<FoolishContext> | CallbackQueryContext<FoolishContext> | FoolishContext;
 
 export async function templateStart(ctx: CtxContext, edit: boolean = false) {
+  const card = getCard();
   const now = new Date();
   const user = await ctx.foolish.user();
   const donations = await Trakteer.getDonations();
 
   const expired = new Date(user.expired).getTime() - now.getTime();
-  let message: string = "❡ <b>Foolish on Service</b> ❡\n";
-  message += "<i><u>Embracing the Journey, Trusting the Unknown</u></i>\n\n";
+  let message: string = `❡ <b>${card.name} on Service</b> ❡\n`;
+  message += `<i><u>${card.message}</u></i>\n\n`;
 
   message += "<blockquote expandable>";
   message += "❂ <b>Profil Kamu</b> ❂\n";
@@ -42,7 +44,7 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
   message += "</blockquote>\n\n";
 
   message += "<blockquote expandable>";
-  message += "※ <b>Sultan Permen Titid</b> ※\n";
+  message += "※ <b>Para Supreme Being</b> ※\n";
   message += "-".repeat(15) + "\n";
   for (const donation of donations.result.data) {
     message += `<b>${donation.supporter_name} [${donation.quantity}]</b>\n`;
@@ -83,7 +85,7 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
       reply_markup: keyboard,
     });
   } else {
-    ctx.replyWithPhoto("https://i0.wp.com/altargods.com/wp-content/uploads/2024/01/altar-gods-tarot-the-fool.jpg", {
+    ctx.replyWithPhoto(card.image, {
       caption: message,
       parse_mode: "HTML",
       reply_markup: keyboard,

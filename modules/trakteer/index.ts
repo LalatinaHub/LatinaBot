@@ -2,7 +2,7 @@ import { fetch } from "bun";
 
 export class Trakteer {
   static async getDonations() {
-    const res = await fetch("https://api.trakteer.id/v1/public/supports?limit=10&include=order_id", {
+    const res = await fetch("https://api.trakteer.id/v1/public/supports?limit=5&include=order_id", {
       headers: {
         Accept: "application/json",
         "X-Requested-With": "XMLHttpRequest",

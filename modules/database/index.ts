@@ -29,6 +29,13 @@ export class Database {
     if (error) throw error;
   }
 
+  async getUsers() {
+    const { data, error } = await this.client.from("users").select("*, premium (*)");
+    if (error) throw error;
+
+    return data;
+  }
+
   async getUser(id: number) {
     const { data, error } = await this.client.from("users").select("*, premium (*)").eq("id", id);
     if (error) throw error;
@@ -36,9 +43,14 @@ export class Database {
     return data[0];
   }
 
+  async deleteUser(ids: number[]) {
+    const { error } = await this.client.from("users").delete().in("id", ids);
+    if (error) throw error;
+  }
+
   async postUser(id: number) {
     const expired = new Date();
-    expired.setDate(expired.getDate() + 1);
+    expired.setDate(expired.getDate() + 7);
 
     const password = pswd.generate({ length: 8, numbers: true });
     const { error } = await this.client.from("users").insert({ id: id, expired: expired, password: password });
@@ -73,7 +85,7 @@ export class Database {
       password: uuidv4(),
       type: "vmess",
       domain: servers[0].domain,
-      quota: 1000,
+      quota: 10000,
       cc: "",
       adblock: true,
     });
@@ -82,6 +94,11 @@ export class Database {
 
   async putPremium(obj: any) {
     const { error } = await this.client.from("premium").upsert(obj);
+    if (error) throw error;
+  }
+
+  async deletePremium(ids: number[]) {
+    const { error } = await this.client.from("premium").delete().in("id", ids);
     if (error) throw error;
   }
 }
