@@ -37,14 +37,29 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
 
   createVpnData.vpn = (await conversation.waitForCallbackQuery(["vmess", "vless", "trojan"])).callbackQuery.data;
 
-  message = "Pilih server kesukaanmu!\n";
-  message += "Sorry kalo masih dikit, kalo banyak yang donasi pasti makin banyak nantinya 😉";
   const servers = await db.getServers();
+  message = "Pilih server kesukaanmu!\n";
+  message += "Sorry kalo masih dikit, kalo banyak yang donasi pasti makin banyak nantinya 😉\n\n";
+  message += "<b>Penghuni server</b>\n";
+  for (const server of servers) {
+    message += `• <b>${server.code}</b> [${server.tenant}/${server.max_tenant}]\n`;
+    if (server.tenant >= server.max_tenant) {
+      message += "•• Penuh ✋🏿\n";
+    } else if (server.tenant <= parseInt((server.max_tenant / 2).toString())) {
+      message += "•• Aman 👍🏻 \n";
+    } else {
+      message += "•• Boleh lah 👌\n";
+    }
+    message += "\n";
+  }
   await ctx.editMessageCaption({
     caption: message,
+    parse_mode: "HTML",
     reply_markup: InlineKeyboard.from([
       (() => {
-        return servers.map((data) => InlineKeyboard.text(data.code, data.domain));
+        return servers
+          .filter((server) => server.tenant < server.max_tenant)
+          .map((server) => InlineKeyboard.text(server.code, server.domain));
       })(),
     ]),
   });

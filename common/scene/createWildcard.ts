@@ -6,9 +6,16 @@ export async function createWildcard(conversation: FoolishConversation, ctx: Foo
   const dns = new DNS();
   const db = new Database();
   const text = await conversation.waitFor(":text");
-  const wildcardDomain = text.message?.text;
+  const wildcardDomain = (text.message?.text as string).toLowerCase();
 
   if (wildcardDomain && wildcardDomain.match(/^.+\.\D+$/)) {
+    const wildcards = await db.getWildcards();
+    for (const wildcard of wildcards) {
+      if (wildcard.domain == wildcardDomain) {
+        return ctx.reply("Wildcard sudah ada!\nProses batal!");
+      }
+    }
+
     ctx.reply("OK proses...");
     await db.postWildcard(wildcardDomain);
     await dns.populateDNS();

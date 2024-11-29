@@ -28,7 +28,9 @@ bot.api.config.use(hydrateFiles(bot.token));
 
 // Error handler
 bot.catch((err) => {
-  err.ctx.reply(`Runtime error happened!\bCoba bilang <a href="tg://user?id=${adminId}/d_fordlalatina">admin</a>`);
+  err.ctx.reply(`Runtime error happened!\bCoba bilang <a href="tg://user?id=${adminId}">admin</a>`, {
+    parse_mode: "HTML",
+  });
 
   let message: string = "<b>Error Report</b>\n";
   message += `From: ${err.ctx.from?.id}\n`;
@@ -58,6 +60,7 @@ bot.use(async (ctx, next) => {
     timeBetweenRestart: (ctx) => {
       return (new Date().getTime() - ctx.session.lastRestart.getTime()) / 60 / 1000;
     },
+    fetchsList: [],
   };
 
   return next();
@@ -96,17 +99,22 @@ bot.on("message:photo", async (ctx) => {
         if (expired.getTime() - now.getTime() < 0) expired = now;
         expired.setDate(expired.getDate() + 30);
 
-        await db.putPremium({
-          ...user.premium,
-          quota: (user.premium?.quota as number) > 0 ? (user.premium?.quota as number) + 250000 : 250000,
-        });
+        ctx.foolish.fetchsList.push(
+          db.putPremium({
+            ...user.premium,
+            quota: (user.premium?.quota as number) > 0 ? (user.premium?.quota as number) + 250000 : 250000,
+          })
+        );
         delete user.premium;
-        await db.putUser({
-          ...user,
-          expired: expired.toISOString().split("T")[0],
-        });
+        ctx.foolish.fetchsList.push(
+          db.putUser({
+            ...user,
+            expired: expired.toISOString().split("T")[0],
+          })
+        );
 
-        await db.postDonation(orderId);
+        ctx.foolish.fetchsList.push(db.postDonation(orderId));
+        await Promise.all(ctx.foolish.fetchsList);
         return templateStart(ctx);
       }
     }
@@ -133,16 +141,38 @@ bot.callbackQuery("c/vpn", async (ctx) => {
 
 bot.callbackQuery("confirm", async (ctx) => {
   const user = await ctx.foolish.user();
+  const servers = await db.getServers();
   const data = JSON.parse(ctx.callbackQuery.message?.caption || "{}");
+  for (const server of servers) {
+    if (server.domain == data.domain) {
+      ctx.foolish.fetchsList.push(
+        db.putServer({
+          ...server,
+          tenant: server.tenant + 1,
+        })
+      );
+    }
+    if (server.domain == user.premium?.domain) {
+      ctx.foolish.fetchsList.push(
+        db.putServer({
+          ...server,
+          tenant: server.tenant - 1,
+        })
+      );
+    }
+  }
 
-  await db.putPremium({
-    ...user.premium,
-    type: data.vpn,
-    domain: data.domain,
-    cc: data.relay,
-  });
+  ctx.foolish.fetchsList.push(
+    db.putPremium({
+      ...user.premium,
+      type: data.vpn,
+      domain: data.domain,
+      cc: data.relay,
+    })
+  );
 
   ctx.session.lastRestart = new Date();
+  await Promise.all(ctx.foolish.fetchsList);
   await reloadServers();
   return templateStart(ctx, true);
 });

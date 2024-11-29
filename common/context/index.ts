@@ -21,6 +21,7 @@ type _FoolishContext = {
       };
     }>;
     timeBetweenRestart: (ctx: FoolishContext) => number;
+    fetchsList: Promise<any>[];
   };
 };
 

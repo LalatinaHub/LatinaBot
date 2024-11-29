@@ -12,6 +12,11 @@ export class Database {
     return data;
   }
 
+  async putServer(obj: any) {
+    const { error } = await this.client.from("domains").upsert(obj);
+    if (error) throw error;
+  }
+
   async getWildcards() {
     const { data, error } = await this.client.from("wildcards").select();
     if (error) throw error;
