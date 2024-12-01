@@ -1,4 +1,4 @@
-import { Bot, session } from "grammy";
+import { Bot, InputFile, session } from "grammy";
 import { run } from "@grammyjs/runner";
 import { limit } from "@grammyjs/ratelimiter";
 import { hydrateFiles } from "@grammyjs/files";
@@ -7,6 +7,7 @@ import { generateUpdateMiddleware } from "telegraf-middleware-console-time";
 import { encode } from "html-entities";
 import { v4 as uuidv4 } from "uuid";
 import { fetch } from "bun";
+import { exists, mkdir } from "node:fs/promises";
 import pswd from "generate-password";
 import "dotenv/config";
 
@@ -20,10 +21,12 @@ import { scanOcrUrl } from "./modules/helper/ocr";
 import { Trakteer } from "./modules/trakteer";
 import { reloadServers } from "./modules/helper/server";
 import { cleanExceededQuota, cleanExpiredUsers } from "./modules/helper/users";
+import sharp from "sharp";
 
 const bot = new Bot<FoolishContext>(process.env.BOT_TOKEN as string);
 const db = new Database();
-const adminId = process.env.ADMIN_ID;
+const adminId = process.env.ADMIN_ID as unknown as number;
+let localOrderId: string = "";
 
 // Config
 bot.api.config.use(hydrateFiles(bot.token));
@@ -40,7 +43,7 @@ bot.catch((err) => {
   message += `Error Message: ${encode(err.message)}\n`;
   message += `Error Stack: \n${encode(err.stack)}`;
 
-  return bot.api.sendMessage(adminId as string, message, {
+  return bot.api.sendMessage(adminId, message, {
     parse_mode: "HTML",
   });
 });
@@ -80,6 +83,34 @@ bot.command("start", async (ctx) => {
   return templateStart(ctx);
 });
 
+bot.command("new_order", async (ctx) => {
+  localOrderId = uuidv4();
+  await sharp({
+    create: {
+      width: 1200,
+      height: 200,
+      channels: 4,
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
+    },
+  })
+    .composite([
+      {
+        input: {
+          text: {
+            text: localOrderId,
+            width: 1200,
+            height: 64,
+            font: "sans",
+            rgba: true,
+          },
+        },
+      },
+    ])
+    .jpeg()
+    .toFile("./temp/localOrder.jpeg");
+  return ctx.replyWithPhoto(new InputFile("./temp/localOrder.jpeg"));
+});
+
 // On
 bot.on("message:photo", async (ctx) => {
   const photo = await ctx.getFile();
@@ -93,33 +124,44 @@ bot.on("message:photo", async (ctx) => {
     }
 
     const donations = await Trakteer.getDonations();
-    for (const donation of donations.result.data) {
-      if (donation.order_id == orderId) {
-        const user = await ctx.foolish.user();
-
-        let now = new Date();
-        let expired = new Date(user.expired);
-        if (expired.getTime() - now.getTime() < 0) expired = now;
-        expired.setDate(expired.getDate() + 30);
-
-        ctx.foolish.fetchsList.push(
-          db.putPremium({
-            ...user.premium,
-            quota: (user.premium?.quota as number) > 0 ? (user.premium?.quota as number) + 250000 : 250000,
-          })
-        );
-        delete user.premium;
-        ctx.foolish.fetchsList.push(
-          db.putUser({
-            ...user,
-            expired: expired.toISOString().split("T")[0],
-          })
-        );
-
-        ctx.foolish.fetchsList.push(db.postDonation(orderId));
-        await Promise.all(ctx.foolish.fetchsList);
-        return templateStart(ctx);
+    let isVerified: boolean = false;
+    if (localOrderId == orderId) {
+      isVerified = true;
+    } else {
+      for (const donation of donations.result.data) {
+        if (donation.order_id == orderId) {
+          isVerified = true;
+          break;
+        }
       }
+    }
+
+    if (isVerified) {
+      const user = await ctx.foolish.user();
+
+      let now = new Date();
+      let expired = new Date(user.expired);
+      if (expired.getTime() - now.getTime() < 0) expired = now;
+      expired.setDate(expired.getDate() + 30);
+
+      ctx.foolish.fetchsList.push(
+        db.putPremium({
+          ...user.premium,
+          quota: (user.premium?.quota as number) > 0 ? (user.premium?.quota as number) + 250000 : 250000,
+        })
+      );
+      delete user.premium;
+      ctx.foolish.fetchsList.push(
+        db.putUser({
+          ...user,
+          expired: expired.toISOString().split("T")[0],
+        })
+      );
+
+      ctx.foolish.fetchsList.push(db.postDonation(orderId));
+      await Promise.all(ctx.foolish.fetchsList);
+      await reloadServers();
+      return templateStart(ctx);
     }
     return ctx.reply("Order ID Invalid!");
   }
@@ -308,6 +350,10 @@ bot.callbackQuery("s/adblock", async (ctx) => {
 });
 
 (async () => {
+  if (!(await exists("./temp"))) {
+    await mkdir("./temp");
+  }
+
   run(bot);
 
   const server = Bun.serve({

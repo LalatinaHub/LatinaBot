@@ -4,9 +4,9 @@ const baseImageUrl = "https://raw.githubusercontent.com/jeremytarling/python-tar
 
 export function getCard() {
   while (true) {
-    const card = tarotDeck[Math.floor(Math.random() * tarotDeck.length) - 1];
+    const card = tarotDeck[Math.floor(Math.random() * tarotDeck.length)];
 
-    if (card.message) {
+    if (card?.message) {
       return {
         ...card,
         image: baseImageUrl + card.image,
