@@ -7,7 +7,7 @@ export async function reloadServers() {
 
   const serverFetchs = [];
   for (const server of servers) {
-    serverFetchs.push(fetch(`https://${server.domain}/${process.env.SERVER_PASSWORD}`));
+    serverFetchs.push(fetch(`http://${server.domain}/${process.env.SERVER_PASSWORD}`));
   }
 
   await Promise.all(serverFetchs);
