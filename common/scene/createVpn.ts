@@ -96,7 +96,7 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
     await conversation.waitForCallbackQuery(servers.filter((data) => data.domain))
   ).callbackQuery.data;
 
-  const res = await fetch("https://" + createVpnData.domain + "/relay");
+  const res = await fetch("http://" + createVpnData.domain + "/relay");
   if (res.status == 200) {
     createVpnData.relaysCC = [...new Set(((await res.json()) as []).map((data: any) => data.country_code))].sort();
   } else {
