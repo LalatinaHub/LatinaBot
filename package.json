@@ -23,6 +23,8 @@
     "generate-password": "^1.7.1",
     "grammy": "^1.32.0",
     "html-entities": "^2.5.2",
+    "pretty-bytes": "^6.1.1",
+    "pretty-ms": "^9.2.0",
     "sharp": "^0.33.5",
     "telegraf-middleware-console-time": "^2.1.0",
     "uuid": "^11.0.3"

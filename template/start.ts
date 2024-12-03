@@ -55,7 +55,6 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
   message += new Date();
 
   const keyboard = InlineKeyboard.from([
-    [InlineKeyboard.text("Refresh", "m/refresh")],
     [
       InlineKeyboard.url(
         "Ambil Akun",
@@ -76,6 +75,7 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
       InlineKeyboard.text("Cara Donasi", "t/donasi"),
       InlineKeyboard.url("Donasi", "https://trakteer.id/dickymuliafiqri/tip"),
     ],
+    [InlineKeyboard.text("🔄", "m/refresh"), InlineKeyboard.text("ℹ️", "m/info")],
   ]);
 
   if (edit) {

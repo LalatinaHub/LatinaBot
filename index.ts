@@ -9,6 +9,9 @@ import { v4 as uuidv4 } from "uuid";
 import { fetch } from "bun";
 import { exists, mkdir } from "node:fs/promises";
 import pswd from "generate-password";
+import sharp from "sharp";
+import prettyBytes from "pretty-bytes";
+import prettyMilliseconds from "pretty-ms";
 import "dotenv/config";
 
 // Import Modules
@@ -19,9 +22,8 @@ import { createVpn } from "./common/scene/createVpn";
 import { createWildcard } from "./common/scene/createWildcard";
 import { scanOcrUrl } from "./modules/helper/ocr";
 import { Trakteer } from "./modules/trakteer";
-import { reloadServers } from "./modules/helper/server";
+import { getServerStatus, reloadServers } from "./modules/helper/server";
 import { cleanExceededQuota, cleanExpiredUsers } from "./modules/helper/users";
-import sharp from "sharp";
 
 const bot = new Bot<FoolishContext>(process.env.BOT_TOKEN as string);
 const db = new Database();
@@ -173,11 +175,37 @@ bot.on("message:photo", async (ctx) => {
 bot.callbackQuery("m/refresh", (ctx) => {
   return templateStart(ctx, true);
 });
+
+bot.callbackQuery("m/info", async (ctx) => {
+  let message: string = "Server Status\n\n";
+  const domain = (ctx.msg?.caption as string).match(/Domain: (.+)/m);
+  if (domain && domain[1]) {
+    const serverStatus = await getServerStatus(domain[1]);
+    message += `Host\n`;
+    message += `OS: ${serverStatus?.host.platform} ${serverStatus?.host.platformVersion}\n`;
+    message += `Disk: ${(serverStatus?.disk.usedPercent || 0).toFixed(2)}%\n`;
+    message += `Uptime: ${prettyMilliseconds((serverStatus?.host.uptime || 0) * 1000)}\n\n`;
+
+    message += `Load\n`;
+    message += `CPU: ${(serverStatus?.cpu[0] || 0).toFixed(2)}%\n`;
+    message += `RAM: ${(serverStatus?.mem.usedPercent || 0).toFixed(2)}%\n\n`;
+
+    message += `Network\n`;
+    message += `UP: ${prettyBytes(serverStatus?.nic[0].bytesSent || 0)}\n`;
+    message += `DL: ${prettyBytes(serverStatus?.nic[0].bytesRecv || 0)}`;
+  }
+
+  ctx.answerCallbackQuery({
+    text: message,
+    show_alert: true,
+  });
+});
+
 bot.callbackQuery("c/vpn", async (ctx) => {
   const timeBetween = ctx.foolish.timeBetweenRestart(ctx);
-  if (timeBetween < 5) {
+  if (timeBetween < 1) {
     return ctx.answerCallbackQuery({
-      text: `Ups, ada delay ${5 - parseInt(timeBetween.toString())} menit`,
+      text: `Ups, ada delay ${1 - parseInt(timeBetween.toString())} menit`,
       show_alert: true,
     });
   }
@@ -277,9 +305,9 @@ bot.callbackQuery("c/pass", async (ctx) => {
 
 bot.callbackQuery("c/uuid", async (ctx) => {
   const timeBetween = ctx.foolish.timeBetweenRestart(ctx);
-  if (timeBetween < 5) {
+  if (timeBetween < 1) {
     return ctx.answerCallbackQuery({
-      text: `Ups, ada delay ${5 - parseInt(timeBetween.toString())} menit`,
+      text: `Ups, ada delay ${1 - parseInt(timeBetween.toString())} menit`,
       show_alert: true,
     });
   }
@@ -336,16 +364,21 @@ bot.callbackQuery("l/wildcard", async (ctx) => {
 });
 
 bot.callbackQuery("s/adblock", async (ctx) => {
+  const timeBetween = ctx.foolish.timeBetweenRestart(ctx);
+  if (timeBetween < 1) {
+    return ctx.answerCallbackQuery({
+      text: `Ups, ada delay ${1 - parseInt(timeBetween.toString())} menit`,
+      show_alert: true,
+    });
+  }
+
   const user = await ctx.foolish.user();
   await db.putPremium({
     ...user.premium,
     adblock: !user.premium?.adblock,
   });
 
-  ctx.answerCallbackQuery({
-    text: "Kamu harus bikin akun vpn baru, uuid baru, atau tunggu server restart untuk merasakan perubahannya.",
-    show_alert: true,
-  });
+  await reloadServers();
   return templateStart(ctx, true);
 });
 

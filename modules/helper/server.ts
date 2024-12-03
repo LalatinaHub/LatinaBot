@@ -1,5 +1,6 @@
 import { fetch } from "bun";
 import { Database } from "../database";
+import type { ServerStatus } from "../../common/context/status";
 
 export async function reloadServers() {
   const db = new Database();
@@ -11,4 +12,11 @@ export async function reloadServers() {
   }
 
   await Promise.all(serverFetchs);
+}
+
+export async function getServerStatus(domain: string) {
+  const res = await fetch(`http://${domain}/status`);
+  if (res.status == 200) {
+    return (await res.json()) as ServerStatus;
+  }
 }
