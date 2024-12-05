@@ -5,6 +5,24 @@ import pswd from "generate-password";
 export class Database {
   private client = createClient(process.env.SUPABASE_URL as string, process.env.SUPABASE_KEY as string);
 
+  async getProxy() {
+    const { count } = await this.client.from("proxies").select("id", { count: "estimated", head: false });
+    while (true) {
+      const remarkId = Math.floor(Math.random() * (count as number) || 1);
+      const { data, error } = await this.client
+        .from("proxies")
+        .select()
+        .neq("vpn", "shadowsocks")
+        .eq("conn_mode", "cdn")
+        .like("remark", `${remarkId} %`)
+        .limit(1)
+        .single();
+      if (error && error?.code != "PGRST116") throw error;
+
+      if (data) return data;
+    }
+  }
+
   async getServers() {
     const { data, error } = await this.client.from("domains").select();
     if (error) throw error;

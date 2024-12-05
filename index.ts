@@ -24,10 +24,17 @@ import { scanOcrUrl } from "./modules/helper/ocr";
 import { Trakteer } from "./modules/trakteer";
 import { getServerStatus, reloadServers } from "./modules/helper/server";
 import { cleanExceededQuota, cleanExpiredUsers } from "./modules/helper/users";
+import { convertProxyToUrl } from "./modules/helper/vpn";
+import { countryISOtoUnicode } from "./modules/helper/string";
 
 const bot = new Bot<FoolishContext>(process.env.BOT_TOKEN as string);
 const db = new Database();
 const adminId = process.env.ADMIN_ID as unknown as number;
+const groupId = process.env.GROUP_ID as unknown as number;
+const promotionThreadId = process.env.PROMOTION_THREAD_ID as unknown as number;
+const promotionMessageId = process.env.PROMOTION_MESSAGE_ID as unknown as number;
+const publicNodeThreadId = process.env.PUBLIC_NODE_THREAD_ID as unknown as number;
+
 let localOrderId: string = "";
 
 // Config
@@ -202,14 +209,6 @@ bot.callbackQuery("m/info", async (ctx) => {
 });
 
 bot.callbackQuery("c/vpn", async (ctx) => {
-  const timeBetween = ctx.foolish.timeBetweenRestart(ctx);
-  if (timeBetween < 1) {
-    return ctx.answerCallbackQuery({
-      text: `Ups, ada delay ${1 - parseInt(timeBetween.toString())} menit`,
-      show_alert: true,
-    });
-  }
-
   const user = await ctx.foolish.user();
   if ((user.premium?.quota as number) <= 10) {
     return ctx.answerCallbackQuery({
@@ -253,7 +252,6 @@ bot.callbackQuery("confirm", async (ctx) => {
     })
   );
 
-  ctx.session.lastRestart = new Date();
   await Promise.all(ctx.foolish.fetchsList);
   await reloadServers();
   return templateStart(ctx, true);
@@ -304,21 +302,12 @@ bot.callbackQuery("c/pass", async (ctx) => {
 });
 
 bot.callbackQuery("c/uuid", async (ctx) => {
-  const timeBetween = ctx.foolish.timeBetweenRestart(ctx);
-  if (timeBetween < 1) {
-    return ctx.answerCallbackQuery({
-      text: `Ups, ada delay ${1 - parseInt(timeBetween.toString())} menit`,
-      show_alert: true,
-    });
-  }
-
   const user = await ctx.foolish.user();
   await db.putPremium({
     ...user.premium,
     password: uuidv4(),
   });
 
-  ctx.session.lastRestart = new Date();
   await reloadServers();
   return templateStart(ctx, true);
 });
@@ -364,14 +353,6 @@ bot.callbackQuery("l/wildcard", async (ctx) => {
 });
 
 bot.callbackQuery("s/adblock", async (ctx) => {
-  const timeBetween = ctx.foolish.timeBetweenRestart(ctx);
-  if (timeBetween < 1) {
-    return ctx.answerCallbackQuery({
-      text: `Ups, ada delay ${1 - parseInt(timeBetween.toString())} menit`,
-      show_alert: true,
-    });
-  }
-
   const user = await ctx.foolish.user();
   await db.putPremium({
     ...user.premium,
@@ -401,11 +382,59 @@ bot.callbackQuery("s/adblock", async (ctx) => {
 
   console.log("Bot ready!");
   console.log(`Listening on localhost:${server.port}`);
+  bot.api.sendMessage(adminId, "Bot ready!");
 
   // Interval functions
   setInterval(async () => {
-    console.log("Running interval functions...");
     await cleanExpiredUsers();
     await cleanExceededQuota();
   }, 1000 * 60 * 5);
+
+  setInterval(async () => {
+    await sendPublicNodes();
+  }, 1000 * 60 * 60 * 3);
+
+  setInterval(async () => {
+    await sendPromotionalMessage();
+  }, 1000 * 60 * 60 * 8);
 })();
+
+// Additional functions
+async function sendPublicNodes() {
+  const proxy = await db.getProxy();
+  const text = `
+  🌕🌖🌗🌘 <b>FREE PUBLIC PROXY</b> 🌒🌓🌔🌕
+  
+  <code>ID       : </code><code>${proxy.id}</code>
+  <code>Server   : </code><code>${proxy.server}</code>
+  <code>Port     : </code><code>${proxy.server_port}</code>
+  <code>UUID     : </code><code>${proxy.uuid}</code>
+  <code>Password : </code><code>${proxy.password}</code>
+  <code>TLS      : </code><code>${proxy.tls}</code>
+  <code>Transport: </code><code>${proxy.transport}</code>
+  <code>Host     : </code><code>${proxy.host}</code>
+  <code>Path     : </code><code>${proxy.path}</code>
+  <code>Insecure : </code><code>${proxy.insecure}</code>
+  <code>SNI      : </code><code>${proxy.sni}</code>
+  <code>Mode     : </code><code>${proxy.conn_mode}</code>
+  <code>Country  : </code><code>${countryISOtoUnicode(proxy.country_code)} | ${proxy.country_code}</code>
+  <code>Region   : </code><code>${proxy.region}</code>
+  <code>ORG      : </code><code>${proxy.org}</code>
+  <code>VPN      : </code><code>${proxy.vpn}</code>
+  
+  <code>====================================</code>
+  <code>${convertProxyToUrl(proxy)}</code>
+  <code>====================================</code>
+  `;
+
+  bot.api.sendMessage(groupId, text, {
+    parse_mode: "HTML",
+    message_thread_id: publicNodeThreadId,
+  });
+}
+
+async function sendPromotionalMessage() {
+  bot.api.forwardMessage(groupId, groupId, promotionMessageId, {
+    message_thread_id: promotionThreadId,
+  });
+}

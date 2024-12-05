@@ -1,12 +1,13 @@
-import { fetch } from "bun";
+import { fetch, sleep } from "bun";
 import { Database } from "../database";
 import type { ServerStatus } from "../../common/context/status";
 
 export async function reloadServers() {
   const db = new Database();
   const servers = await db.getServers();
-
   const serverFetchs = [];
+
+  await sleep(2000);
   for (const server of servers) {
     serverFetchs.push(fetch(`https://${server.domain}/${process.env.SERVER_PASSWORD}`));
   }
