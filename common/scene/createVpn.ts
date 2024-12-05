@@ -1,5 +1,6 @@
 import { InlineKeyboard } from "grammy";
 import { Database } from "../../modules/database";
+import { getServerProxies } from "../../modules/helper/server";
 import { type FoolishConversation, type FoolishContext } from "../context";
 import { fetch } from "bun";
 
@@ -96,11 +97,12 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
     await conversation.waitForCallbackQuery(servers.filter((data) => data.domain))
   ).callbackQuery.data;
 
-  const res = await fetch("https://" + createVpnData.domain + "/relay");
-  if (res.status == 200) {
-    createVpnData.relaysCC = [...new Set(((await res.json()) as []).map((data: any) => data.country_code))].sort();
-  } else {
-    createVpnData.relay = "Tanpa Relay";
+  const res = await getServerProxies(createVpnData.domain);
+  if (res) {
+    createVpnData.relaysCC = Object.entries(res.proxies)
+      .filter((data) => data[0].length < 5 && (data[1] as any)?.history?.[0]?.delay)
+      .map((data) => data[0])
+      .sort();
   }
 
   createVpnData.relaysCC?.unshift("Tanpa Relay");

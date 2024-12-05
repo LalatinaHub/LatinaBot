@@ -20,3 +20,15 @@ export async function getServerStatus(domain: string) {
     return (await res.json()) as ServerStatus;
   }
 }
+
+export async function getServerProxies(domain: string) {
+  const res = await fetch(`https://${domain}/yacd/proxies`, {
+    headers: {
+      Authorization: "Bearer YACD_PASSWORD",
+    },
+  });
+
+  if (res) {
+    return await res.json();
+  }
+}
