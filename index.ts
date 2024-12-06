@@ -26,9 +26,11 @@ import { getServerStatus, reloadServers } from "./modules/helper/server";
 import { cleanExceededQuota, cleanExpiredUsers } from "./modules/helper/users";
 import { convertProxyToUrl } from "./modules/helper/vpn";
 import { countryISOtoUnicode } from "./modules/helper/string";
+import { Cron as CronJob } from "./modules/cron";
 
 const bot = new Bot<FoolishContext>(process.env.BOT_TOKEN as string);
 const db = new Database();
+const cron = new CronJob();
 const adminId = process.env.ADMIN_ID as unknown as number;
 const groupId = process.env.GROUP_ID as unknown as number;
 const promotionThreadId = process.env.PROMOTION_THREAD_ID as unknown as number;
@@ -363,42 +365,7 @@ bot.callbackQuery("s/adblock", async (ctx) => {
   return templateStart(ctx, true);
 });
 
-(async () => {
-  if (!(await exists("./temp"))) {
-    await mkdir("./temp");
-  }
-
-  run(bot);
-
-  const server = Bun.serve({
-    port: 8080,
-    fetch(request) {
-      return new Response("Welcome to Bun!");
-    },
-  });
-
-  const cred = await fetch(process.env.SERVICE_ACCOUNT_URL || "");
-  Bun.write("./gcloud-cred.json", cred);
-
-  console.log("Bot ready!");
-  console.log(`Listening on localhost:${server.port}`);
-  bot.api.sendMessage(adminId, "Bot ready!");
-
-  // Interval functions
-  setInterval(async () => {
-    await cleanExpiredUsers();
-    await cleanExceededQuota();
-  }, 1000 * 60 * 5);
-
-  setInterval(async () => {
-    await sendPublicNodes();
-  }, 1000 * 60 * 60 * 3);
-
-  setInterval(async () => {
-    await sendPromotionalMessage();
-  }, 1000 * 60 * 60 * 8);
-})();
-
+// Additional functions
 // Additional functions
 async function sendPublicNodes() {
   const proxy = await db.getProxy();
@@ -438,3 +405,43 @@ async function sendPromotionalMessage() {
     message_thread_id: promotionThreadId,
   });
 }
+
+// Build cronjobs
+cron.register(async () => {
+  await cleanExpiredUsers();
+  await cleanExceededQuota();
+}, "*/6 * * * *");
+
+cron.register(() => {
+  sendPublicNodes();
+}, "0 */3 * * *");
+
+cron.register(() => {
+  sendPromotionalMessage();
+}, "0 */8 * * *");
+
+// Main function
+(async () => {
+  if (!(await exists("./temp"))) {
+    await mkdir("./temp");
+  }
+
+  run(bot);
+
+  const server = Bun.serve({
+    port: 8080,
+    fetch(request) {
+      return new Response("Welcome to Bun!");
+    },
+  });
+
+  const cred = await fetch(process.env.SERVICE_ACCOUNT_URL || "");
+  Bun.write("./gcloud-cred.json", cred);
+
+  console.log("Bot ready!");
+  console.log(`Listening on localhost:${server.port}`);
+  bot.api.sendMessage(adminId, "Bot ready!");
+
+  // Start Cron Jobs
+  cron.start();
+})();

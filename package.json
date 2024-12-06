@@ -19,6 +19,7 @@
     "@grammyjs/runner": "^2.0.3",
     "@supabase/supabase-js": "^2.46.1",
     "cloudflare": "^3.5.0",
+    "cron": "^3.2.1",
     "dotenv": "^16.4.5",
     "generate-password": "^1.7.1",
     "grammy": "^1.32.0",
