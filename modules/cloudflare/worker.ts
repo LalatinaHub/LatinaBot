@@ -5,6 +5,14 @@ export class Worker {
   private cloudflare = new Cloudflare();
   private db = new Database();
 
+  /**
+   * TODO
+   *
+   * - Get Account ID and Zone ID directly from Cloudflare API
+   * - Make code more efficient
+   * - Move crucial functions to index.ts
+   */
+
   private accountId = process.env.CLOUDFLARE_ACCOUNT_ID || "";
   private zoneId = process.env.CLOUDFLARE_ZONE_ID || "";
   private environment = process.env.WORKER_ENVIRONMENT || "";
@@ -29,7 +37,7 @@ export class Worker {
     const fetchsList = [];
     for (const server of servers) {
       for (const wildcard of wildcards) {
-        const subdomain = `${wildcard.domain}.${this.serviceName}.${server.domain}`;
+        const subdomain = `${wildcard.domain}.${server.domain}`;
         let isExists = false;
         for (const workderSubdomain of workersSubdomains) {
           if (subdomain == workderSubdomain.hostname) {
@@ -63,5 +71,10 @@ export class Worker {
         this.cloudflare.workers.domains.delete(workersSubdomain.id as string, { account_id: this.accountId })
       );
     }
+  }
+
+  async flushAndRegisterWorkersSubdomains() {
+    await this.flushWorkersSubdomains();
+    await this.registerWorkersSubdomains();
   }
 }

@@ -326,13 +326,12 @@ bot.callbackQuery("l/wildcard", async (ctx) => {
   let message = "Daftar Wildcard:\n";
   message += "<blockquote expandable>";
   for (const wildcard of wildcardList) {
-    message += `• ${wildcard.domain}\n`;
+    message += `• <code>${wildcard.domain}</code>\n`;
   }
   message += "</blockquote>\n\n";
 
   message += "Contoh:\n";
-  message += `<code>${wildcardList[0].domain}.${workerServiceName}.${servers[0].domain}</code>\n\n`;
-  message += `Ingat! ada tulisan <b>${workerServiceName}</b> di atas ↑`;
+  message += `<code>${wildcardList[0].domain}.${servers[0].domain}</code>`;
 
   ctx.reply(message, {
     parse_mode: "HTML",

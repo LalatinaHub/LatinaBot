@@ -11,22 +11,25 @@ export class DNS {
   private cloudflare = new Cloudflare();
   private db = new Database();
 
-  async populateDNS() {
+  async populateDNS(assignWildcard: Boolean = false) {
     const servers = await this.db.getServers();
     const wildcards = await this.db.getWildcards();
     for (const server of servers) {
       await this.postDNS(server.domain, server.ip, false);
-      let wildcardFetchs: Promise<Record>[] = [];
-      for (const wildcard of wildcards) {
-        wildcardFetchs.push(this.postDNS(`${wildcard.domain}.${server.domain}`, server.ip, true));
 
-        if (wildcardFetchs.length >= 10) {
-          await Promise.all(wildcardFetchs).finally(() => {
-            wildcardFetchs = [];
-          });
+      if (assignWildcard) {
+        let wildcardFetchs: Promise<Record>[] = [];
+        for (const wildcard of wildcards) {
+          wildcardFetchs.push(this.postDNS(`${wildcard.domain}.${server.domain}`, server.ip, true));
+
+          if (wildcardFetchs.length >= 10) {
+            await Promise.all(wildcardFetchs).finally(() => {
+              wildcardFetchs = [];
+            });
+          }
         }
+        await Promise.all(wildcardFetchs);
       }
-      await Promise.all(wildcardFetchs);
     }
   }
 
