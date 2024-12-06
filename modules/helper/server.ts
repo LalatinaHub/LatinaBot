@@ -7,10 +7,10 @@ export async function reloadServers() {
   const servers = await db.getServers();
   const serverFetchs = [];
 
-  await sleep(5000);
+  await sleep(2000);
   for (const server of servers) {
     serverFetchs.push(fetch(`https://${server.domain}/api/v1/${process.env.SERVER_PASSWORD}`));
-    await sleep(1000);
+    await sleep(200);
   }
 
   await Promise.all(serverFetchs);
