@@ -1,9 +1,9 @@
 import { Database } from "../../modules/database";
 import { type FoolishConversation, type FoolishContext } from "../context";
-import { DNS } from "../../modules/cloudflare/dns";
+import { Worker } from "../../modules/cloudflare/worker";
 
 export async function createWildcard(conversation: FoolishConversation, ctx: FoolishContext) {
-  const dns = new DNS();
+  const worker = new Worker();
   const db = new Database();
   const text = await conversation.waitFor(":text");
   const wildcardDomain = (text.message?.text as string).toLowerCase();
@@ -18,7 +18,7 @@ export async function createWildcard(conversation: FoolishConversation, ctx: Foo
 
     ctx.reply("OK proses...");
     await db.postWildcard(wildcardDomain);
-    await dns.populateDNS();
+    await worker.registerWorkersSubdomains();
     await ctx.reply("Done!");
   } else {
     await ctx.reply("Waduh error!\nProses batal!");

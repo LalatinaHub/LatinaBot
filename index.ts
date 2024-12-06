@@ -36,6 +36,7 @@ const groupId = process.env.GROUP_ID as unknown as number;
 const promotionThreadId = process.env.PROMOTION_THREAD_ID as unknown as number;
 const promotionMessageId = process.env.PROMOTION_MESSAGE_ID as unknown as number;
 const publicNodeThreadId = process.env.PUBLIC_NODE_THREAD_ID as unknown as number;
+const workerServiceName = process.env.WORKER_SERVICE_NAME as string;
 
 let localOrderId: string = "";
 
@@ -330,7 +331,8 @@ bot.callbackQuery("l/wildcard", async (ctx) => {
   message += "</blockquote>\n\n";
 
   message += "Contoh:\n";
-  message += `<code>${wildcardList[0].domain}.${servers[0].domain}</code>`;
+  message += `<code>${wildcardList[0].domain}.${workerServiceName}.${servers[0].domain}</code>\n\n`;
+  message += `Ingat! ada tulisan <b>${workerServiceName}</b> di atas ↑`;
 
   ctx.reply(message, {
     parse_mode: "HTML",
