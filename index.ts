@@ -22,7 +22,7 @@ import { createVpn } from "./common/scene/createVpn";
 import { createWildcard } from "./common/scene/createWildcard";
 import { scanOcrUrl } from "./modules/helper/ocr";
 import { Trakteer } from "./modules/trakteer";
-import { getServerStatus, reloadServers } from "./modules/helper/server";
+import { assignServerTenants, getServerStatus, reloadServers } from "./modules/helper/server";
 import { cleanExceededQuota, cleanExpiredUsers } from "./modules/helper/users";
 import { convertProxyToUrl } from "./modules/helper/vpn";
 import { countryISOtoUnicode } from "./modules/helper/string";
@@ -92,6 +92,11 @@ bot.use(generateUpdateMiddleware());
 // Commands
 bot.command("start", async (ctx) => {
   return templateStart(ctx);
+});
+
+bot.command("promote", async (ctx) => {
+  sendPromotionalMessage();
+  sendPublicNodes();
 });
 
 bot.command("new_order", async (ctx) => {
@@ -224,26 +229,7 @@ bot.callbackQuery("c/vpn", async (ctx) => {
 
 bot.callbackQuery("confirm", async (ctx) => {
   const user = await ctx.foolish.user();
-  const servers = await db.getServers();
   const data = JSON.parse(ctx.callbackQuery.message?.caption || "{}");
-  for (const server of servers) {
-    if (server.domain == data.domain) {
-      ctx.foolish.fetchsList.push(
-        db.putServer({
-          ...server,
-          tenant: server.tenant + 1,
-        })
-      );
-    }
-    if (server.domain == user.premium?.domain) {
-      ctx.foolish.fetchsList.push(
-        db.putServer({
-          ...server,
-          tenant: server.tenant > 0 ? server.tenant - 1 : 0,
-        })
-      );
-    }
-  }
 
   ctx.foolish.fetchsList.push(
     db.putPremium({
@@ -410,7 +396,8 @@ async function sendPromotionalMessage() {
 cron.register(async () => {
   await cleanExpiredUsers();
   await cleanExceededQuota();
-}, "*/6 * * * *");
+  await assignServerTenants();
+}, "*/5 * * * *");
 
 cron.register(() => {
   sendPublicNodes();

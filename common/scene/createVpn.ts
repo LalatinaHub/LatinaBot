@@ -141,7 +141,7 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
         ...(() => {
           const keyboard = [];
           for (let i = (createVpnData.page || 0) * 3; i < (createVpnData.page || 0) * 3 + 3; i++) {
-            keyboard.push(keyboardMap[i]);
+            if (keyboardMap[i]) keyboard.push(keyboardMap[i]);
           }
 
           return keyboard;

@@ -2,8 +2,9 @@ import { fetch, sleep } from "bun";
 import { Database } from "../database";
 import type { ServerStatus } from "../../common/context/status";
 
+const db = new Database();
+
 export async function reloadServers() {
-  const db = new Database();
   const servers = await db.getServers();
   const serverFetchs = [];
 
@@ -33,4 +34,23 @@ export async function getServerProxies(domain: string) {
   if (res) {
     return await res.json();
   }
+}
+
+export async function assignServerTenants() {
+  const servers = await db.getServers();
+  const users = await db.getUsers();
+
+  const fetchsList = [];
+  for (let server of servers) {
+    server.tenant = 0;
+    for (const user of users) {
+      if (user.premium.domain == server.domain && user.premium.quota > 10) {
+        server.tenant += 1;
+      }
+    }
+
+    fetchsList.push(db.putServer(server));
+  }
+
+  await Promise.all(fetchsList);
 }
