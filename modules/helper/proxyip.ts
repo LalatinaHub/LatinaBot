@@ -38,19 +38,19 @@ export async function checkIP(proxyIP: string | null) {
 
   try {
     const [ipinfo, myip] = await Promise.all([
-      sendRequest("myip.bexnxx.us.to", "/", proxyInfo),
-      sendRequest("myip.bexnxx.us.to", "/", null),
+      sendRequest("api.ip.sb", "/geoip", proxyInfo),
+      sendRequest("api.ip.sb", "/geoip", null),
     ]);
 
     const parsedIpInfo = JSON.parse(ipinfo as string);
     const parsedMyIp = JSON.parse(myip as string);
 
-    if (parsedIpInfo.myip && parsedIpInfo.myip !== parsedMyIp.myip) {
+    if (parsedIpInfo.myip && parsedIpInfo.ip !== parsedMyIp.ip) {
       return {
         proxy: proxy,
         port: port,
         proxyip: true,
-        ip: parsedIpInfo.myip,
+        ip: parsedIpInfo.ip,
         ...parsedIpInfo,
       };
     } else {
