@@ -37,10 +37,12 @@ export async function checkIP(proxyIP: string | null) {
   const proxyInfo = { host: proxy, port: port };
 
   try {
+    const start = new Date().getTime();
     const [ipinfo, myip] = await Promise.all([
       sendRequest("nautica.foolvpn.me", "/api/v1/myip", proxyInfo),
       sendRequest("nautica.foolvpn.me", "/api/v1/myip", null),
     ]);
+    const finish = new Date().getTime();
 
     const parsedIpInfo = JSON.parse(ipinfo as string);
     const parsedMyIp = JSON.parse(myip as string);
@@ -50,12 +52,13 @@ export async function checkIP(proxyIP: string | null) {
         proxy: proxy,
         port: port,
         proxyip: true,
+        delay: finish - start,
         ...parsedIpInfo,
       };
     } else {
       return { proxyip: false };
     }
   } catch (error: any) {
-    return { proxyip: error.message };
+    return { proxyip: false, message: error.message };
   }
 }
