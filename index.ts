@@ -27,6 +27,7 @@ import { cleanExceededQuota, cleanExpiredUsers } from "./modules/helper/users";
 import { convertProxyToUrl } from "./modules/helper/vpn";
 import { countryISOtoUnicode } from "./modules/helper/string";
 import { Cron as CronJob } from "./modules/cron";
+import { checkIP } from "./modules/helper/proxyip";
 
 const bot = new Bot<FoolishContext>(process.env.BOT_TOKEN as string);
 const db = new Database();
@@ -418,7 +419,20 @@ cron.register(() => {
 
   const server = Bun.serve({
     port: 8080,
-    fetch(request) {
+    async fetch(request) {
+      const url = new URL(request.url);
+
+      try {
+        if (url.pathname == "/api/v1/proxy/check") {
+          const proxyIP = url.searchParams.get("ip");
+
+          const res = await checkIP(proxyIP);
+          return new Response(JSON.stringify(res));
+        }
+      } catch (e: any) {
+        return new Response(`Error ${e.message}`);
+      }
+
       return new Response("Welcome to Bun!");
     },
   });
