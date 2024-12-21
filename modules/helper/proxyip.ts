@@ -38,8 +38,8 @@ export async function checkIP(proxyIP: string | null) {
 
   try {
     const [ipinfo, myip] = await Promise.all([
-      sendRequest("cloudflare-ip.html.zone", "/geo", proxyInfo),
-      sendRequest("cloudflare-ip.html.zone", "/geo", null),
+      sendRequest("nautica.foolvpn.me", "/api/v1/myip", proxyInfo),
+      sendRequest("nautica.foolvpn.me", "/api/v1/myip", null),
     ]);
 
     const parsedIpInfo = JSON.parse(ipinfo as string);
