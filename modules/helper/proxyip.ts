@@ -38,19 +38,18 @@ export async function checkIP(proxyIP: string | null) {
 
   try {
     const [ipinfo, myip] = await Promise.all([
-      sendRequest("api.ip.sb", "/geoip", proxyInfo),
-      sendRequest("api.ip.sb", "/geoip", null),
+      sendRequest("cloudflare-ip.html.zone", "/geo", proxyInfo),
+      sendRequest("cloudflare-ip.html.zone", "/geo", null),
     ]);
 
     const parsedIpInfo = JSON.parse(ipinfo as string);
     const parsedMyIp = JSON.parse(myip as string);
 
-    if (parsedIpInfo.myip && parsedIpInfo.ip !== parsedMyIp.ip) {
+    if (parsedIpInfo.ip && parsedIpInfo.ip !== parsedMyIp.ip) {
       return {
         proxy: proxy,
         port: port,
         proxyip: true,
-        ip: parsedIpInfo.ip,
         ...parsedIpInfo,
       };
     } else {
