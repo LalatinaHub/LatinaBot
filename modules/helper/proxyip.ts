@@ -1,5 +1,8 @@
 import tls from "tls";
 
+const IP_RESOLVER_DOMAIN = "myip.shylook.workers.dev";
+const IP_RESOLVER_PATH = "/";
+
 async function sendRequest(host: string, path: string, proxy: any = null) {
   return new Promise((resolve, reject) => {
     const options = {
@@ -39,8 +42,8 @@ export async function checkIP(proxyIP: string | null) {
   try {
     const start = new Date().getTime();
     const [ipinfo, myip] = await Promise.all([
-      sendRequest("nautica.foolvpn.me", "/api/v1/myip", proxyInfo),
-      sendRequest("nautica.foolvpn.me", "/api/v1/myip", null),
+      sendRequest(IP_RESOLVER_DOMAIN, IP_RESOLVER_PATH, proxyInfo),
+      sendRequest(IP_RESOLVER_DOMAIN, IP_RESOLVER_PATH, null),
     ]);
     const finish = new Date().getTime();
 
