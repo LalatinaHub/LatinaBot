@@ -37,7 +37,6 @@ const groupId = process.env.GROUP_ID as unknown as number;
 const promotionThreadId = process.env.PROMOTION_THREAD_ID as unknown as number;
 const promotionMessageId = process.env.PROMOTION_MESSAGE_ID as unknown as number;
 const publicNodeThreadId = process.env.PUBLIC_NODE_THREAD_ID as unknown as number;
-const workerServiceName = process.env.WORKER_SERVICE_NAME as string;
 
 let localOrderId: string = "";
 
@@ -67,6 +66,9 @@ bot.use(async (ctx, next) => {
   if (ctx.chat?.type != "private") return;
 
   ctx.foolish = {
+    isAdmin: (ctx) => {
+      return ctx.chat.id == adminId;
+    },
     user: async () => {
       while (true) {
         let tempUserData = await db.getUser(ctx.from?.id as number);
@@ -97,11 +99,15 @@ bot.command("start", async (ctx) => {
 });
 
 bot.command("promote", async (ctx) => {
+  if (!ctx.foolish.isAdmin(ctx)) return;
+
   sendPromotionalMessage();
   sendPublicNodes();
 });
 
 bot.command("new_order", async (ctx) => {
+  if (!ctx.foolish.isAdmin(ctx)) return;
+
   localOrderId = uuidv4();
   await sharp({
     create: {
@@ -118,7 +124,6 @@ bot.command("new_order", async (ctx) => {
             text: localOrderId,
             width: 1200,
             height: 64,
-            font: "sans",
             rgba: true,
           },
         },
