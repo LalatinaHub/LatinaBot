@@ -89,7 +89,7 @@ export class Database {
   }
 
   async getDonation(orderId: string) {
-    const data = await this.client.execute(`SELECT FROM donations WHERE order_id = ${orderId};`);
+    const data = await this.client.execute(`SELECT * FROM donations WHERE order_id = '${orderId}';`);
     return data.rows[0];
   }
 
