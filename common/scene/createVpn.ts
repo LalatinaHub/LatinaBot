@@ -62,7 +62,8 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   }
   await Promise.all(serversInfo);
   message = "Pilih server kesukaanmu!\n";
-  message += "Sorry kalo masih dikit, kalo banyak yang donasi pasti makin banyak nantinya 😉\n\n";
+  message += "• Sorry kalo masih dikit, kalo banyak yang donasi pasti makin banyak nantinya 😉\n";
+  message += "• Abaikan jika ping agak besar, karena lokasi bot ada di eropa\n\n";
   message += "<blockquote expandable>";
   message += "<b>Server's Stats</b>\n\n";
   for (const i in servers) {
