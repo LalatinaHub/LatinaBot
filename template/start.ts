@@ -58,7 +58,7 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
     [
       InlineKeyboard.url(
         "Ambil Akun",
-        `http://api.foolvpn.me/sub?format=raw&cdn=104.18.2.2&sni=google.com&mode=cdn,sni&region=Asia&vpn=vmess,vless,trojan&pass=${user.password}`
+        `http://api.foolvpn.me/sub?format=raw&cdn=104.18.2.2&sni=google.com&mode=cdn,sni&region=Asia&vpn=vmess,vless,trojan&pass=${user.token}`
       ),
       InlineKeyboard.text("Buat Akun", "c/vpn"),
     ],
