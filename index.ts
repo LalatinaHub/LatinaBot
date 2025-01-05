@@ -75,6 +75,7 @@ bot.use(async (ctx, next) => {
         if (tempUserData) return tempUserData;
 
         await db.postUser(ctx.from?.id as number);
+        await Bun.sleep(1000);
       }
     },
     timeBetweenRestart: (ctx) => {
