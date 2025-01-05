@@ -45,7 +45,7 @@ export async function assignServerTenants() {
     server.users_count = 0;
     for (const user of users) {
       if (user.server_code == server.code && (user.quota as number) > 10) {
-        (server.user_count as number) += 1;
+        (server.users_count as number) += 1;
       }
     }
 
