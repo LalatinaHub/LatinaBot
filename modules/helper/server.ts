@@ -42,10 +42,10 @@ export async function assignServerTenants() {
 
   const fetchsList = [];
   for (let server of servers) {
-    server.tenant = 0;
+    server.users_count = 0;
     for (const user of users) {
-      if (user.premium.domain == server.domain && user.premium.quota > 10) {
-        server.tenant += 1;
+      if (user.server_code == server.code && (user.quota as number) > 10) {
+        (server.user_count as number) += 1;
       }
     }
 

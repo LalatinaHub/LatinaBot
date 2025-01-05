@@ -168,15 +168,9 @@ bot.on("message:photo", async (ctx) => {
       expired.setDate(expired.getDate() + 30);
 
       ctx.foolish.fetchsList.push(
-        db.putPremium({
-          ...user.premium,
-          quota: (user.premium?.quota as number) > 0 ? (user.premium?.quota as number) + 250000 : 250000,
-        })
-      );
-      delete user.premium;
-      ctx.foolish.fetchsList.push(
         db.putUser({
           ...user,
+          quota: (user.quota as number) > 0 ? (user?.quota as number) + 250000 : 250000,
           expired: expired.toISOString().split("T")[0],
         })
       );
@@ -224,7 +218,7 @@ bot.callbackQuery("m/info", async (ctx) => {
 
 bot.callbackQuery("c/vpn", async (ctx) => {
   const user = await ctx.foolish.user();
-  if ((user.premium?.quota as number) <= 10) {
+  if ((user?.quota as number) <= 10) {
     return ctx.answerCallbackQuery({
       text: "Kuota kamu habis kak!",
       show_alert: true,
@@ -239,11 +233,11 @@ bot.callbackQuery("confirm", async (ctx) => {
   const data = JSON.parse(ctx.callbackQuery.message?.caption || "{}");
 
   ctx.foolish.fetchsList.push(
-    db.putPremium({
-      ...user.premium,
-      type: data.vpn,
-      domain: data.domain,
-      cc: data.relay,
+    db.putUser({
+      ...user,
+      server_code: data.server_code,
+      relay: data.relay,
+      vpn: data.vpn,
     })
   );
 
@@ -283,11 +277,10 @@ bot.callbackQuery("t/donasi", (ctx) => {
 
 bot.callbackQuery("c/pass", async (ctx) => {
   const user = await ctx.foolish.user();
-  delete user.premium;
 
   await db.putUser({
     ...user,
-    password: pswd.generate({
+    token: pswd.generate({
       length: 8,
       numbers: true,
     }),
@@ -298,8 +291,8 @@ bot.callbackQuery("c/pass", async (ctx) => {
 
 bot.callbackQuery("c/uuid", async (ctx) => {
   const user = await ctx.foolish.user();
-  await db.putPremium({
-    ...user.premium,
+  await db.putUser({
+    ...user,
     password: uuidv4(),
   });
 
@@ -349,9 +342,9 @@ bot.callbackQuery("l/wildcard", async (ctx) => {
 
 bot.callbackQuery("s/adblock", async (ctx) => {
   const user = await ctx.foolish.user();
-  await db.putPremium({
-    ...user.premium,
-    adblock: !user.premium?.adblock,
+  await db.putUser({
+    ...user,
+    adblock: !user?.adblock,
   });
 
   await reloadServers();

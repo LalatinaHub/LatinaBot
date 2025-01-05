@@ -17,7 +17,7 @@
     "@grammyjs/files": "^1.1.1",
     "@grammyjs/ratelimiter": "^1.2.1",
     "@grammyjs/runner": "^2.0.3",
-    "@supabase/supabase-js": "^2.46.1",
+    "@libsql/client": "^0.14.0",
     "@types/node": "^22.10.2",
     "cloudflare": "^3.5.0",
     "cron": "^3.2.1",

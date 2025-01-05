@@ -9,17 +9,14 @@ type _FoolishContext = {
     isAdmin: (ctx: CommandContext<FoolishContext>) => boolean;
     user: () => Promise<{
       id: number;
-      expired: Date;
+      token: string;
       password: string;
-      premium?: {
-        id: number;
-        password: string;
-        type: string;
-        domain: string;
-        quota: number;
-        cc: string;
-        adblock: boolean;
-      };
+      expired: Date;
+      server_code: string;
+      quota: number;
+      relay: string;
+      adblock: boolean;
+      vpn: string;
     }>;
     timeBetweenRestart: (ctx: FoolishContext) => number;
     fetchsList: Promise<any>[];

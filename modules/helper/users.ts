@@ -10,13 +10,12 @@ export async function cleanExpiredUsers() {
 
   const fetchsList = [];
   for (const user of users) {
-    if (now.getTime() - new Date(user.expired).getTime() > oneWeekInMilliseconds) {
-      expiredIds.push(user.id);
+    if (now.getTime() - new Date((user as any).expired).getTime() > oneWeekInMilliseconds) {
+      expiredIds.push(user.id as number);
     }
   }
 
   if (expiredIds) {
-    fetchsList.push(db.deletePremium(expiredIds));
     fetchsList.push(db.deleteUser(expiredIds));
 
     await Promise.all(fetchsList);
@@ -28,11 +27,11 @@ export async function cleanExceededQuota() {
 
   const fetchsList = [];
   for (const user of users) {
-    if (user.premium.quota <= 10) {
+    if ((user.quota as number) <= 10) {
       fetchsList.push(
-        db.putPremium({
-          ...user.premium,
-          domain: "",
+        db.putUser({
+          ...user,
+          server_code: "",
         })
       );
     }

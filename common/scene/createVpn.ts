@@ -8,13 +8,13 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   const db = new Database();
   let createVpnData: {
     vpn: string;
-    domain: string;
+    server_code: string;
     relay: string;
     page?: number;
     relaysCC?: string[];
   } = {
     vpn: "",
-    domain: "",
+    server_code: "",
     relay: "",
     page: 0,
     relaysCC: [""],
@@ -68,13 +68,11 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   for (const i in servers) {
     const server = servers[i];
     const serverInfo = serversInfo[i];
-    message += `• <b>${server.code}</b> [${server.tenant}/${server.max_tenant}]\n`;
+    message += `• <b>${server.code}</b> [${server.users_count}/${server.users_max}]\n`;
     message += `•• 📡 ${(await serverInfo).ping} ms\n`;
     message += `•• 🪪 ${(await serverInfo).org}\n`;
-    if (server.tenant >= server.max_tenant) {
+    if ((server.users_count || 0) >= (server.users_max || 0)) {
       message += "•• 😭 Penuh\n";
-    } else if (server.tenant <= parseInt((server.max_tenant / 2).toString())) {
-      message += "•• 😋 Aman\n";
     } else {
       message += "•• 😁 Boleh lah\n";
     }
@@ -87,17 +85,19 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
     reply_markup: InlineKeyboard.from([
       (() => {
         return servers
-          .filter((server) => server.tenant < server.max_tenant)
-          .map((server) => InlineKeyboard.text(server.code, server.domain));
+          .filter((server) => (server.users_count || 0) < (server.users_max || 1))
+          .map((server) => InlineKeyboard.text(server.code as string, server.code as string));
       })(),
     ]),
   });
 
-  createVpnData.domain = (
-    await conversation.waitForCallbackQuery(servers.filter((data) => data.domain))
+  createVpnData.server_code = (
+    await conversation.waitForCallbackQuery((servers as any).filter((server: any) => server.code))
   ).callbackQuery.data;
 
-  const res = await getServerProxies(createVpnData.domain);
+  const res = await getServerProxies(
+    (servers as any).filter((server: any) => server.code == createVpnData.server_code)[0].domain
+  );
   if (res) {
     createVpnData.relaysCC = Object.entries(res.proxies)
       .filter((data) => data[0].length < 5 && (data[1] as any)?.history?.[0]?.delay)
