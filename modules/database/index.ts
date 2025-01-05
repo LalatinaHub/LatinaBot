@@ -65,7 +65,7 @@ export class Database {
     const token = pswd.generate({ length: 8, numbers: true });
 
     await this.client.execute({
-      sql: "INSERT INTO users VALUES (:id, :token, :password, :expired, :server_code, :quota, :relay, :adblock :vpn)",
+      sql: "INSERT INTO users VALUES (:id, :token, :password, :expired, :server_code, :quota, :relay, :adblock, :vpn)",
       args: {
         id: id,
         token: token,
