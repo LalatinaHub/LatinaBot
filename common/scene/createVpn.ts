@@ -43,7 +43,7 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   for (const server of servers) {
     const timeStart = new Date().getTime();
     serversInfo.push(
-      fetch("https://" + server.domain + "/api/v1/info").then(async (res) => {
+      fetch("http://" + server.domain + "/api/v1/info").then(async (res) => {
         let result = {
           org: "Unknown",
           ping: 0,

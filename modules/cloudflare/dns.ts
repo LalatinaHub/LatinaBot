@@ -14,7 +14,8 @@ export class DNS {
   async populateDNS(assignWildcard: Boolean = false) {
     const servers = await this.db.getServers();
     const wildcards = await this.db.getWildcards();
-    for (const server of servers) {
+    for (const srv of servers) {
+      const server: any = srv;
       await this.postDNS(server.domain, server.ip, false);
 
       if (assignWildcard) {

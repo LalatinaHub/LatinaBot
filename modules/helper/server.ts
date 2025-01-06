@@ -10,7 +10,7 @@ export async function reloadServers() {
 
   await sleep(2000);
   for (const server of servers) {
-    serverFetchs.push(fetch(`https://${server.domain}/api/v1/${process.env.SERVER_PASSWORD}`));
+    serverFetchs.push(fetch(`http://${server.domain}/api/v1/${process.env.SERVER_PASSWORD}`));
     await sleep(200);
   }
 
@@ -18,14 +18,14 @@ export async function reloadServers() {
 }
 
 export async function getServerStatus(domain: string) {
-  const res = await fetch(`https://${domain}/api/v1/status`);
+  const res = await fetch(`http://${domain}/api/v1/status`);
   if (res.status == 200) {
     return (await res.json()) as ServerStatus;
   }
 }
 
 export async function getServerProxies(domain: string) {
-  const res = await fetch(`https://${domain}/yacd/proxies`, {
+  const res = await fetch(`http://${domain}/yacd/proxies`, {
     headers: {
       Authorization: "Bearer YACD_PASSWORD",
     },
