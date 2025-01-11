@@ -28,10 +28,14 @@ import { convertProxyToUrl } from "./modules/helper/vpn";
 import { countryISOtoUnicode } from "./modules/helper/string";
 import { Cron as CronJob } from "./modules/cron";
 import { checkIP } from "./modules/helper/proxyip";
+import { DNS } from "./modules/cloudflare/dns";
+import { Cloudflare } from "./modules/cloudflare";
 
 const bot = new Bot<FoolishContext>(process.env.BOT_TOKEN as string);
 const db = new Database();
 const cron = new CronJob();
+const dns = new DNS();
+const cf = new Cloudflare();
 const adminId = process.env.ADMIN_ID as unknown as number;
 const groupId = process.env.GROUP_ID as unknown as number;
 const promotionThreadId = process.env.PROMOTION_THREAD_ID as unknown as number;
@@ -393,6 +397,41 @@ async function sendPromotionalMessage() {
   });
 }
 
+async function filterValidDNS() {
+  const dnsList = await dns.getDNSList();
+  const analytics = await dns.getAnalytics();
+
+  for (const record of dnsList.records) {
+    try {
+      const res = await fetch("https://" + record.name);
+      if (res.status == 200) {
+        for (const analyticRecord of analytics.data) {
+          let alive = false;
+          let accessCount = 0;
+          for (const accessed of analyticRecord.metrics[0]) {
+            if (accessed) accessCount += accessed as number;
+            if (accessCount >= 50) {
+              alive = true;
+              break;
+            }
+          }
+
+          if (!alive) {
+            throw new Error("dns record is not alive: " + record.name);
+          }
+        }
+      } else {
+        throw new Error("url invalid: " + record.name);
+      }
+    } catch (e: any) {
+      if (record.type == "A" || record.type == "AAAA") {
+        console.error(e.message);
+        await cf.deleteDNSRecord(record.id as string);
+      }
+    }
+  }
+}
+
 // Build cronjobs
 cron.register(async () => {
   await cleanExpiredUsers();
@@ -402,6 +441,7 @@ cron.register(async () => {
 
 cron.register(() => {
   sendPublicNodes();
+  filterValidDNS();
 }, "0 */3 * * *");
 
 cron.register(() => {

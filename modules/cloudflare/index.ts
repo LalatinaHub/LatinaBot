@@ -57,4 +57,12 @@ export class Cloudflare {
       zone_id: zone.id,
     });
   }
+
+  async getDNSAnalytics() {
+    const zone = await this.getZone();
+    return await this.client.dns.analytics.reports.bytimes.get({
+      zone_id: zone.id,
+      dimensions: "queryName",
+    });
+  }
 }

@@ -64,4 +64,8 @@ export class DNS {
     await this.flushDNS();
     await this.populateDNS();
   }
+
+  async getAnalytics() {
+    return await this.cloudflare.getDNSAnalytics();
+  }
 }
