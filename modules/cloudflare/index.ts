@@ -65,4 +65,18 @@ export class Cloudflare {
       dimensions: "queryName",
     });
   }
+
+  async getCertificatePackList() {
+    const zone = await this.getZone();
+    return await this.client.ssl.certificatePacks.list({
+      zone_id: zone.id,
+    });
+  }
+
+  async deleteCertificatePack(id: string) {
+    const zone = await this.getZone();
+    await this.client.ssl.certificatePacks.delete(id, {
+      zone_id: zone.id,
+    });
+  }
 }

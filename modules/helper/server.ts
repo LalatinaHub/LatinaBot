@@ -6,11 +6,12 @@ const db = new Database();
 
 export async function reloadServers() {
   const servers = await db.getServers();
+  const apiToken = await db.getKV("apiToken");
   const serverFetchs = [];
 
   await sleep(2000);
   for (const server of servers) {
-    serverFetchs.push(fetch(`http://${server.domain}/api/v1/${process.env.SERVER_PASSWORD}`));
+    serverFetchs.push(fetch(`http://${server.domain}/api/v1/${apiToken.value}`));
     await sleep(200);
   }
 

@@ -9,6 +9,17 @@ export class Database {
     authToken: process.env.TURSO_AUTH_TOKEN as string,
   });
 
+  async getKV(key: string) {
+    const data = await this.client.execute({
+      sql: "SELECT * FROM kv WHERE key = :key;",
+      args: {
+        key: key,
+      },
+    });
+
+    return data.rows[0];
+  }
+
   async getProxy() {
     const proxies = await this.client.execute(
       "SELECT * FROM proxies WHERE vpn != 'shadowsocks' AND conn_mode == 'cdn' ORDER BY RANDOM() LIMIT 1"
