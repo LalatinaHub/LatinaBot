@@ -417,11 +417,11 @@ async function filterValidDNS() {
           }
 
           if (!alive) {
-            throw new Error("dns record is not alive: " + record.name);
+            // throw new Error("dns record is not alive: " + record.name); // Need more data
           }
         }
       } else {
-        throw new Error("url invalid: " + record.name);
+        // throw new Error("url invalid: " + record.name);
       }
     } catch (e: any) {
       if (record.type == "A" || record.type == "AAAA") {
