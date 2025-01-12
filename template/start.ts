@@ -2,14 +2,17 @@ import { InlineKeyboard, type CallbackQueryContext, type CommandContext } from "
 import type { FoolishContext } from "../common/context";
 import { Trakteer } from "../modules/trakteer";
 import { getCard } from "../modules/tarot";
+import { Database } from "../modules/database";
 
 type CtxContext = CommandContext<FoolishContext> | CallbackQueryContext<FoolishContext> | FoolishContext;
 
 export async function templateStart(ctx: CtxContext, edit: boolean = false) {
+  const db = new Database();
   const card = getCard();
   const now = new Date();
   const user = await ctx.foolish.user();
   const donations = await Trakteer.getDonations();
+  const servers = await db.getServers();
 
   const expired = new Date(user.expired).getTime() - now.getTime();
   let message: string = `❡ <b>${card.name} on Service</b> ❡\n`;
@@ -30,7 +33,10 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
   message += "-".repeat(15) + "\n";
   message += `Tipe: ${user.vpn}\n`;
   message += `UUID: <tg-spoiler>${user.password}</tg-spoiler>\n`;
-  message += `Server Code: ${user.server_code}\n`;
+  if (user.server_code) {
+    message += `Server Code: ${user.server_code}\n`;
+    message += `Domain: ${servers.filter((server: any) => server.code == user.server_code)?.[0]?.domain}\n`;
+  }
   message += `Relay: ${user.relay}\n`;
   message += `Quota: ${user.quota} MB\n`;
   message += `Adblock: ${user.adblock ? "Hidup" : "Mati"}\n`;
