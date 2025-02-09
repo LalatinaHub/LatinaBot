@@ -26,11 +26,7 @@ export async function getServerStatus(domain: string) {
 }
 
 export async function getServerProxies(domain: string) {
-  const res = await fetch(`http://${domain}/yacd/proxies`, {
-    headers: {
-      Authorization: "Bearer YACD_PASSWORD",
-    },
-  });
+  const res = await fetch(`http://${domain}/api/v1/relay`);
 
   if (res) {
     return await res.json();

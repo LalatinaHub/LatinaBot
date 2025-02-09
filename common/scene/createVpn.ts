@@ -1,6 +1,7 @@
 import { InlineKeyboard } from "grammy";
 import { Database } from "../../modules/database";
 import { getServerProxies } from "../../modules/helper/server";
+import { countryISOtoUnicode } from "../../modules/helper/string";
 import { type FoolishConversation, type FoolishContext } from "../context";
 import { fetch } from "bun";
 
@@ -93,24 +94,29 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   });
 
   createVpnData.server_code = (
-    await conversation.waitForCallbackQuery((servers as any).filter((server: any) => server.code))
+    await conversation.waitForCallbackQuery((servers as any).map((server: any) => server.code))
   ).callbackQuery.data;
 
   const res = await getServerProxies(
     (servers as any).filter((server: any) => server.code == createVpnData.server_code)[0].domain
   );
   if (res) {
-    createVpnData.relaysCC = Object.entries(res.proxies)
-      .filter((data) => data[0].length < 5 && (data[1] as any)?.history?.[0]?.delay)
-      .map((data) => data[0])
-      .sort();
+    createVpnData.relaysCC = [
+      ...new Set(
+        Object.values(res)
+          .map((data: any) => data.country_code)
+          .sort()
+      ),
+    ];
   }
 
   createVpnData.relaysCC?.unshift("Tanpa Relay");
   const keyboardMap: any = [[]];
   const relayCC = createVpnData.relaysCC;
   for (const i in relayCC) {
-    keyboardMap[keyboardMap.length - 1].push(InlineKeyboard.text(relayCC[parseInt(i)]));
+    keyboardMap[keyboardMap.length - 1].push(
+      InlineKeyboard.text(countryISOtoUnicode(relayCC[parseInt(i)]), relayCC[parseInt(i)])
+    );
     if (parseInt(i) && (!(parseInt(i) % 6) || parseInt(i) == relayCC.length - 1)) {
       keyboardMap.push([
         parseInt(i) > 6 || parseInt(i) == relayCC.length - 1
