@@ -457,7 +457,7 @@ cron.register(() => {
   run(bot);
 
   const server = Bun.serve({
-    port: 8080,
+    port: process.env.PORT || 8080,
     async fetch(request) {
       const url = new URL(request.url);
 
