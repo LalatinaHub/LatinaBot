@@ -1,4 +1,4 @@
-import { Bot, InputFile, session } from "grammy";
+import { Bot, InlineKeyboard, InputFile, session } from "grammy";
 import { run } from "@grammyjs/runner";
 import { limit } from "@grammyjs/ratelimiter";
 import { hydrateFiles } from "@grammyjs/files";
@@ -30,12 +30,14 @@ import { Cron as CronJob } from "./modules/cron";
 import { checkIP } from "./modules/helper/proxyip";
 import { DNS } from "./modules/cloudflare/dns";
 import { Cloudflare } from "./modules/cloudflare";
+import { Payment } from "./modules/payment";
 
 const bot = new Bot<FoolishContext>(process.env.BOT_TOKEN as string);
 const db = new Database();
 const cron = new CronJob();
 const dns = new DNS();
 const cf = new Cloudflare();
+const payment = new Payment();
 const adminId = process.env.ADMIN_ID as unknown as number;
 const groupId = process.env.GROUP_ID as unknown as number;
 const promotionThreadId = process.env.PROMOTION_THREAD_ID as unknown as number;
@@ -278,6 +280,57 @@ bot.callbackQuery("t/donasi", (ctx) => {
     caption: "↑ Contoh bukti donasi ↑\n\n" + message,
     parse_mode: "HTML",
   });
+});
+
+bot.callbackQuery("m/donasi", async (ctx) => {
+  const paymentRes = await payment.makePayment(5000);
+
+  if (paymentRes.error) {
+    return ctx.reply(`Gagal membuat pembayaran!\n${paymentRes.message}`, {
+      parse_mode: "HTML",
+    });
+  }
+
+  ctx.reply("Lakukan pembayaran dengan menekan tombol berikut!", {
+    reply_markup: InlineKeyboard.from([
+      [
+        InlineKeyboard.url("Bayar", `https://app.midtrans.com/snap/v4/redirection/${paymentRes.message}`),
+        InlineKeyboard.text("Refresh", `c/donasi_${paymentRes.message}`),
+      ],
+    ]),
+  });
+});
+
+bot.callbackQuery(/c\/donasi_.+/, async (ctx) => {
+  const token = ctx.callbackQuery.data.split("_")[1];
+  if (await db.getDonation(token)) {
+    return ctx.reply("Token Expired!");
+  }
+
+  const checkRes = await payment.checkPayment(token);
+  if (checkRes.error) {
+    return ctx.reply(checkRes.message);
+  }
+
+  const user = await ctx.foolish.user();
+  let now = new Date();
+  let expired = new Date(user.expired);
+  if (expired.getTime() - now.getTime() < 0) expired = now;
+  expired.setDate(expired.getDate() + 30);
+
+  ctx.foolish.fetchsList.push(
+    db.putUser({
+      ...user,
+      quota: (user.quota as number) > 0 ? (user?.quota as number) + 250000 : 250000,
+      expired: expired.toISOString().split("T")[0],
+    })
+  );
+
+  ctx.foolish.fetchsList.push(db.postDonation(token));
+  await Promise.all(ctx.foolish.fetchsList);
+  await reloadServers();
+  await ctx.deleteMessage();
+  return templateStart(ctx);
 });
 
 bot.callbackQuery("c/pass", async (ctx) => {
