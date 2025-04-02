@@ -64,14 +64,14 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
     [
       InlineKeyboard.url(
         "Ambil Akun",
-        `http://api.foolvpn.me/sub?format=raw&cdn=104.18.2.2&sni=google.com&mode=cdn,sni&region=Asia&vpn=vmess,vless,trojan&pass=${user.token}`
+        `https://api.foolvpn.me/sub?format=raw&cdn=104.18.2.2&sni=google.com&mode=cdn,sni&region=Asia&vpn=vmess,vless,trojan&pass=${user.token}`
       ),
       InlineKeyboard.text("Buat Akun", "c/vpn"),
     ],
     [
-      InlineKeyboard.url("Docs", "https://fool.azurewebsites.net"),
-      InlineKeyboard.url("Converter", "t.me/subxfm_bot"),
+      InlineKeyboard.url("Website", "https://foolvpn.me"),
       InlineKeyboard.url("Grup", "t.me/foolvpn"),
+      InlineKeyboard.url("Converter", "t.me/subxfm_bot"),
     ],
     [InlineKeyboard.text("Ganti Password", "c/pass"), InlineKeyboard.text("Ganti UUID", "c/uuid")],
     [InlineKeyboard.text(`${user.adblock ? "Matikan" : "Hidupkan"} Adblock`, "s/adblock")],
@@ -85,7 +85,7 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
       InlineKeyboard.url("Trakteer", "https://trakteer.id/dickymuliafiqri/tip"),
       // InlineKeyboard.text("Midtrans (Beta)", "m/donasi"),
     ],
-    [InlineKeyboard.text("🔄", "m/refresh"), InlineKeyboard.text("ℹ️", "m/info")],
+    [InlineKeyboard.text("🔄", "m/refresh"), InlineKeyboard.url("ℹ️", "https://foolvpn.me/uptime")],
   ]);
 
   if (edit) {
