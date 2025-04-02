@@ -8,6 +8,8 @@ import { encode } from "html-entities";
 import { v4 as uuidv4 } from "uuid";
 import { fetch } from "bun";
 import { exists, mkdir } from "node:fs/promises";
+import { createReadStream } from "fs";
+import QRCode from "qrcode";
 import pswd from "generate-password";
 import sharp from "sharp";
 import prettyBytes from "pretty-bytes";
@@ -291,13 +293,13 @@ bot.callbackQuery("m/donasi", async (ctx) => {
     });
   }
 
-  ctx.reply("Lakukan pembayaran dengan menekan tombol berikut!", {
-    reply_markup: InlineKeyboard.from([
-      [
-        InlineKeyboard.url("Bayar", `https://app.midtrans.com/snap/v4/redirection/${paymentRes.message}`),
-        InlineKeyboard.text("Refresh", `c/donasi_${paymentRes.message}`),
-      ],
-    ]),
+  const qrFilePath = `./temp/${ctx.from.id}.jpeg`;
+  QRCode.toFile(qrFilePath, paymentRes.message, {
+    width: 500,
+  });
+  ctx.replyWithPhoto(new InputFile(createReadStream(qrFilePath)), {
+    caption: "Lakukan pembayaran pada qrcode di atas!",
+    reply_markup: InlineKeyboard.from([[InlineKeyboard.text("Refresh", `c/donasi_`)]]),
   });
 });
 

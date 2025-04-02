@@ -7,29 +7,31 @@
     "coldStart": "bun install && bun run index.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node": "^22.13.17",
+    "@types/qrcode": "^1.5.5"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@google-cloud/vision": "^4.3.2",
+    "@google-cloud/vision": "^4.3.3",
     "@grammyjs/conversations": "^1.2.0",
     "@grammyjs/files": "^1.1.1",
     "@grammyjs/ratelimiter": "^1.2.1",
     "@grammyjs/runner": "^2.0.3",
     "@libsql/client": "^0.14.0",
-    "@types/node": "^22.10.2",
     "cloudflare": "^3.5.0",
-    "cron": "^3.2.1",
-    "dotenv": "^16.4.5",
+    "cron": "^3.5.0",
+    "dotenv": "^16.4.7",
     "generate-password": "^1.7.1",
-    "grammy": "^1.32.0",
-    "html-entities": "^2.5.2",
+    "grammy": "^1.35.1",
+    "html-entities": "^2.6.0",
     "pretty-bytes": "^6.1.1",
     "pretty-ms": "^9.2.0",
+    "qrcode": "^1.5.4",
     "sharp": "^0.33.5",
     "telegraf-middleware-console-time": "^2.1.0",
-    "uuid": "^11.0.3"
+    "uuid": "^11.1.0"
   }
 }

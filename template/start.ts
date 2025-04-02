@@ -83,7 +83,7 @@ export async function templateStart(ctx: CtxContext, edit: boolean = false) {
     [
       InlineKeyboard.text("Cara Donasi", "t/donasi"),
       InlineKeyboard.url("Trakteer", "https://trakteer.id/dickymuliafiqri/tip"),
-      // InlineKeyboard.text("Midtrans (Beta)", "m/donasi"),
+      // InlineKeyboard.text("Xendit (Beta)", "m/donasi"),
     ],
     [InlineKeyboard.text("🔄", "m/refresh"), InlineKeyboard.url("ℹ️", "https://foolvpn.me/uptime")],
   ]);

@@ -1,6 +1,6 @@
 import { fetch } from "bun";
 
-const transactionUrl = "https://app.midtrans.com/snap/v1/transactions";
+const transactionUrl = "https://api.xendit.co/qr_codes";
 
 export class Payment {
   private apiKey = process.env.GATEWAY_PAYMENT_API_KEY || "";
@@ -17,22 +17,21 @@ export class Payment {
         headers: {
           accept: "application/json",
           "content-type": "application/json",
-          authorization: `Basic ${this.apiKey}`,
+          "api-version": "2022-07-31",
+          authorization: `Basic ${btoa(this.apiKey)}`,
         },
         body: JSON.stringify({
-          transaction_details: { order_id: new Date().getTime(), gross_amount: amount },
-          credit_card: { secure: false },
-          page_expiry: {
-            duration: 5,
-            unit: "minutes",
-          },
+          reference_id: `order-id-${new Date().getTime()}`,
+          type: "DYNAMIC",
+          currency: "IDR",
+          amount: amount,
         }),
       });
 
       if (res.status == 201) {
         returnValue = {
           error: false,
-          message: (await res.json()).token,
+          message: (await res.json()).qr_string,
         };
       } else {
         throw new Error(res.statusText);
@@ -52,13 +51,20 @@ export class Payment {
       error: false,
       message: "",
     };
-    const checkUrl = `${transactionUrl}/${token}/status`;
+    const checkUrl = `${transactionUrl}/${token}`;
 
     try {
-      const res = await fetch(checkUrl);
+      const res = await fetch(checkUrl, {
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+          "api-version": "2022-07-31",
+          authorization: `Basic ${btoa(this.apiKey)}`,
+        },
+      });
 
       if (res.status == 200) {
-        if ((await res.json()).transaction_status == "success") {
+        if ((await res.json()).status == "SUCCEEDED") {
           returnValue = {
             error: false,
             message: "success",
