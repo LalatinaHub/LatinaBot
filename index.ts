@@ -55,6 +55,7 @@ bot.api.config.use(hydrateFiles(bot.token));
 bot.catch((err) => {
   err.ctx.reply(`Waduh error!\nCoba bilang <a href="tg://user?id=${adminId}">admin</a>`, {
     parse_mode: "HTML",
+    reply_markup: InlineKeyboard.from([[InlineKeyboard.url("Cek Status Server", "https://foolvpn.me/uptime")]]),
   });
 
   let message: string = "<b>Error Report</b>\n";
