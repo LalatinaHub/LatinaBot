@@ -114,20 +114,20 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   const keyboardMap: any = [[]];
   const relayCC = createVpnData.relaysCC;
   for (const i in relayCC) {
-    keyboardMap[keyboardMap.length - 1].push(
-      InlineKeyboard.text(countryISOtoUnicode(relayCC[parseInt(i)]), relayCC[parseInt(i)])
-    );
-    if (parseInt(i) && (!(parseInt(i) % 6) || parseInt(i) == relayCC.length - 1)) {
+    const iNumber = parseInt(i);
+    const cc = relayCC[iNumber];
+    keyboardMap[keyboardMap.length - 1].push(InlineKeyboard.text(`${countryISOtoUnicode(cc)} ${cc}`, cc));
+    if (iNumber && (!(iNumber % 6) || iNumber == relayCC.length - 1)) {
       keyboardMap.push([
-        parseInt(i) > 6 || parseInt(i) == relayCC.length - 1
-          ? InlineKeyboard.text("〈 Prev", `${Math.round(parseInt(i) / 6 - 2)}`)
+        iNumber > 6 || iNumber == relayCC.length - 1
+          ? InlineKeyboard.text("〈 Prev", `${Math.round(iNumber / 6 - 2)}`)
           : InlineKeyboard.text("⛔️ End", "End"),
-        parseInt(i) < relayCC.length - 1
-          ? InlineKeyboard.text("Next 〉", `${Math.round(parseInt(i) / 6)}`)
+        iNumber < relayCC.length - 1
+          ? InlineKeyboard.text("Next 〉", `${Math.round(iNumber / 6)}`)
           : InlineKeyboard.text("End ⛔️", "End"),
       ]);
     }
-    if (parseInt(i) && !(parseInt(i) % 3)) keyboardMap.push([]);
+    if (iNumber && !(iNumber % 3)) keyboardMap.push([]);
   }
 
   message = "Fool VPN menyediakan jalur relay dengan skema:\n";
@@ -136,9 +136,18 @@ export async function createVpn(conversation: FoolishConversation, ctx: FoolishC
   message += "• Privasi Lebih Terjaga: Alamat IP asli kamu gak kelihatan.\n";
   message += "• Anti Blokir: Bebas akses meski ada pembatasan jaringan.\n";
   message += "• Koneksi Stabil: Relay bikin koneksi tetap lancar meski di jaringan ketat.\n\n";
+
+  // Relay server list
+  message += "Daftar Server:\n";
+  for (const relayOrg of Array.from(new Set(res.map((relay: any) => relay.org))).slice(0, 10)) {
+    message += `• ${relayOrg}\n`;
+  }
+  message += "• ...\n\n";
+
   message += "Catatan\n";
   message += "• Relay nambahin latensi/ping\n";
   message += "• Relay gak bikin lemot (tergantung server relay)";
+
   while (!createVpnData.relay) {
     await ctx.editMessageCaption({
       caption: `${message}\n\n${(createVpnData.page || 0) + 1}/${Math.round(
