@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
  
 RUN bun install
-RUN apt install pm2 -g
+RUN bun install pm2 -g
  
 EXPOSE 8080
 
