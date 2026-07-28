@@ -45,6 +45,7 @@ const groupId = process.env.GROUP_ID as unknown as number;
 const promotionThreadId = process.env.PROMOTION_THREAD_ID as unknown as number;
 const promotionMessageId = process.env.PROMOTION_MESSAGE_ID as unknown as number;
 const publicNodeThreadId = process.env.PUBLIC_NODE_THREAD_ID as unknown as number;
+const quotaPerDonation = 500000; // in Mb
 
 let localOrderId: string = "";
 
@@ -180,9 +181,9 @@ bot.on("message:photo", async (ctx) => {
       ctx.foolish.fetchsList.push(
         db.putUser({
           ...user,
-          quota: (user.quota as number) > 0 ? (user?.quota as number) + 250000 : 250000,
+          quota: (user.quota as number) > 0 ? (user?.quota as number) + quotaPerDonation : quotaPerDonation,
           expired: expired.toISOString().split("T")[0],
-        })
+        }),
       );
 
       ctx.foolish.fetchsList.push(db.postDonation(orderId));
@@ -248,7 +249,7 @@ bot.callbackQuery("confirm", async (ctx) => {
       server_code: data.server_code,
       relay: data.relay,
       vpn: data.vpn,
-    })
+    }),
   );
 
   await Promise.all(ctx.foolish.fetchsList);
@@ -324,9 +325,9 @@ bot.callbackQuery(/c\/donasi_.+/, async (ctx) => {
   ctx.foolish.fetchsList.push(
     db.putUser({
       ...user,
-      quota: (user.quota as number) > 0 ? (user?.quota as number) + 250000 : 250000,
+      quota: (user.quota as number) > 0 ? (user?.quota as number) + quotaPerDonation : quotaPerDonation,
       expired: expired.toISOString().split("T")[0],
-    })
+    }),
   );
 
   ctx.foolish.fetchsList.push(db.postDonation(token));
