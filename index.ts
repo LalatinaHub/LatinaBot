@@ -45,7 +45,7 @@ const groupId = process.env.GROUP_ID as unknown as number;
 const promotionThreadId = process.env.PROMOTION_THREAD_ID as unknown as number;
 const promotionMessageId = process.env.PROMOTION_MESSAGE_ID as unknown as number;
 const publicNodeThreadId = process.env.PUBLIC_NODE_THREAD_ID as unknown as number;
-const quotaPerDonation = 500000; // in Mb
+const quotaPerDonation = 1000000; // in Mb
 
 let localOrderId: string = "";
 
