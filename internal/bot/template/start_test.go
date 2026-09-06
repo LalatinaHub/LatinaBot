@@ -56,4 +56,13 @@ func TestBuildStartKeyboard(t *testing.T) {
 	markup := BuildStartKeyboard(user)
 	assert.NotNil(t, markup)
 	assert.NotEmpty(t, markup.InlineKeyboard)
+
+	// Verify all data buttons have valid Telebot identifiers (no slashes)
+	for _, row := range markup.InlineKeyboard {
+		for _, btn := range row {
+			if btn.Unique != "" {
+				assert.NotContains(t, btn.Unique, "/", "Button unique %q should not contain '/'", btn.Unique)
+			}
+		}
+	}
 }

@@ -34,11 +34,16 @@ func main() {
 	}
 
 	// 2. Setup structured logging
-	logger.SetupLogger(cfg.AppEnv, cfg.IsProduction())
+	logLevel := "info"
+	if cfg.IsDevelopment() {
+		logLevel = "debug"
+	}
+	logger.SetupLogger(logLevel, cfg.IsProduction())
 	logger.Info().
 		Str("app_env", cfg.AppEnv).
 		Str("port", cfg.Port).
 		Int64("admin_id", cfg.AdminID).
+		Bool("development", cfg.IsDevelopment()).
 		Msg("Starting LatinaBot (Go 1.24+)...")
 
 	// Ensure temp directory exists

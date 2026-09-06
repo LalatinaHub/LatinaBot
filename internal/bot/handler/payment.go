@@ -64,7 +64,7 @@ func (h *PaymentHandler) HandleMakePayment(c tele.Context) error {
 	}
 
 	menu := &tele.ReplyMarkup{}
-	btnRefresh := menu.Data("Refresh", fmt.Sprintf("c/donasi_%s", res.Message))
+	btnRefresh := menu.Data("Refresh", fmt.Sprintf("c_donasi_%s", res.Message))
 	menu.Inline(menu.Row(btnRefresh))
 
 	photo := &tele.Photo{
@@ -78,8 +78,8 @@ func (h *PaymentHandler) HandleMakePayment(c tele.Context) error {
 
 // HandleCheckPayment checks status of QR payment and grants quota.
 func (h *PaymentHandler) HandleCheckPayment(c tele.Context) error {
-	callbackData := c.Callback().Data
-	token := strings.TrimPrefix(callbackData, "c/donasi_")
+	cleanData := strings.TrimPrefix(c.Callback().Data, "\f")
+	token := strings.TrimPrefix(strings.TrimPrefix(cleanData, "c_donasi_"), "c/donasi_")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()

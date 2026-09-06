@@ -101,28 +101,28 @@ func BuildStartKeyboard(user *model.User) *tele.ReplyMarkup {
 	)
 
 	btnAmbilAkun := menu.URL("Ambil Akun", subURL)
-	btnBuatAkun := menu.Data("Buat Akun", "c/vpn")
+	btnBuatAkun := menu.Data("Buat Akun", "c_vpn")
 
 	btnWebsite := menu.URL("Website", "https://foolvpn.web.id")
 	btnGrup := menu.URL("Grup", "https://t.me/foolvpn")
 	btnConverter := menu.URL("Converter", "https://t.me/subxfm_bot")
 
-	btnGantiPass := menu.Data("Ganti Password", "c/pass")
-	btnGantiUUID := menu.Data("Ganti UUID", "c/uuid")
+	btnGantiPass := menu.Data("Ganti Password", "c_pass")
+	btnGantiUUID := menu.Data("Ganti UUID", "c_uuid")
 
 	adblockLabel := "Hidupkan Adblock"
 	if user.Adblock {
 		adblockLabel = "Matikan Adblock"
 	}
-	btnToggleAdblock := menu.Data(adblockLabel, "s/adblock")
+	btnToggleAdblock := menu.Data(adblockLabel, "s_adblock")
 
-	btnListWildcard := menu.Data("List Wildcard", "l/wildcard")
-	btnDisclaimer := menu.Data("❗️ Desclaimer ❗️", "t/desclaimer")
+	btnListWildcard := menu.Data("List Wildcard", "l_wildcard")
+	btnDisclaimer := menu.Data("❗️ Desclaimer ❗️", "t_desclaimer")
 
-	btnCaraDonasi := menu.Data("Cara Donasi", "t/donasi")
+	btnCaraDonasi := menu.Data("Cara Donasi", "t_donasi")
 	btnTrakteer := menu.URL("Trakteer", "https://trakteer.id/dickymuliafiqri/tip")
 
-	btnRefresh := menu.Data("🔄", "m/refresh")
+	btnRefresh := menu.Data("🔄", "m_refresh")
 	btnUptime := menu.URL("ℹ️", "https://foolvpn.me/uptime")
 
 	menu.Inline(

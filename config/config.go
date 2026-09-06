@@ -109,6 +109,11 @@ func (c *Config) IsProduction() bool {
 	return strings.ToLower(c.AppEnv) == "production" || strings.ToLower(c.AppEnv) == "prod"
 }
 
+// IsDevelopment returns true if running in development mode.
+func (c *Config) IsDevelopment() bool {
+	return !c.IsProduction()
+}
+
 // HTTPAddress returns address for internal HTTP server.
 func (c *Config) HTTPAddress() string {
 	if strings.HasPrefix(c.Port, ":") {

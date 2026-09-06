@@ -48,8 +48,9 @@ type Config struct {
 // NewBot initializes the Telebot engine with all handlers and middlewares.
 func NewBot(cfg Config) (*Bot, error) {
 	pref := tele.Settings{
-		Token:  cfg.AppConfig.BotToken,
-		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
+		Token:   cfg.AppConfig.BotToken,
+		Poller:  &tele.LongPoller{Timeout: 10 * time.Second},
+		Verbose: cfg.AppConfig.IsDevelopment(),
 	}
 
 	b, err := tele.NewBot(pref)
@@ -127,6 +128,7 @@ func NewBot(cfg Config) (*Bot, error) {
 
 func (b *Bot) registerRoutes() {
 	// Middlewares
+	b.teleBot.Use(middleware.Logger(b.cfg.IsDevelopment()))
 	b.teleBot.Use(middleware.Typing())
 	b.teleBot.Use(middleware.ErrorReporter(b.teleBot, b.cfg.AdminID))
 
@@ -137,59 +139,89 @@ func (b *Bot) registerRoutes() {
 	}, middleware.AdminOnly(b.cfg.AdminID))
 	b.teleBot.Handle("/new_order", b.cmdHandler.HandleNewOrder, middleware.AdminOnly(b.cfg.AdminID))
 
-	// Callbacks
-	b.teleBot.Handle(&tele.Btn{Unique: "m/refresh"}, b.cbHandler.HandleRefresh)
-	b.teleBot.Handle(&tele.Btn{Unique: "m/info"}, b.cbHandler.HandleServerInfo)
-	b.teleBot.Handle(&tele.Btn{Unique: "c/pass"}, b.cbHandler.HandleChangePass)
-	b.teleBot.Handle(&tele.Btn{Unique: "c/uuid"}, b.cbHandler.HandleChangeUUID)
-	b.teleBot.Handle(&tele.Btn{Unique: "s/adblock"}, b.cbHandler.HandleToggleAdblock)
-	b.teleBot.Handle(&tele.Btn{Unique: "l/wildcard"}, b.cbHandler.HandleListWildcard)
-	b.teleBot.Handle(&tele.Btn{Unique: "c/wildcard"}, b.wildcardWizard.StartWizard)
-	b.teleBot.Handle(&tele.Btn{Unique: "t/desclaimer"}, b.cbHandler.HandleDisclaimer)
-	b.teleBot.Handle(&tele.Btn{Unique: "t/donasi"}, b.cbHandler.HandleDonasiInfo)
-
-	// Payment callbacks
-	b.teleBot.Handle(&tele.Btn{Unique: "m/donasi"}, b.paymentHandler.HandleMakePayment)
-
-	// VPN Wizard
-	b.teleBot.Handle(&tele.Btn{Unique: "c/vpn"}, b.vpnWizard.StartWizard)
+	// Direct button callback handlers (valid telebot identifiers matching [-\w]+)
+	b.teleBot.Handle(&tele.Btn{Unique: "m_refresh"}, b.cbHandler.HandleRefresh)
+	b.teleBot.Handle(&tele.Btn{Unique: "m_info"}, b.cbHandler.HandleServerInfo)
+	b.teleBot.Handle(&tele.Btn{Unique: "c_pass"}, b.cbHandler.HandleChangePass)
+	b.teleBot.Handle(&tele.Btn{Unique: "c_uuid"}, b.cbHandler.HandleChangeUUID)
+	b.teleBot.Handle(&tele.Btn{Unique: "s_adblock"}, b.cbHandler.HandleToggleAdblock)
+	b.teleBot.Handle(&tele.Btn{Unique: "l_wildcard"}, b.cbHandler.HandleListWildcard)
+	b.teleBot.Handle(&tele.Btn{Unique: "c_wildcard"}, b.wildcardWizard.StartWizard)
+	b.teleBot.Handle(&tele.Btn{Unique: "t_desclaimer"}, b.cbHandler.HandleDisclaimer)
+	b.teleBot.Handle(&tele.Btn{Unique: "t_donasi"}, b.cbHandler.HandleDonasiInfo)
+	b.teleBot.Handle(&tele.Btn{Unique: "m_donasi"}, b.paymentHandler.HandleMakePayment)
+	b.teleBot.Handle(&tele.Btn{Unique: "c_vpn"}, b.vpnWizard.StartWizard)
 	b.teleBot.Handle(&tele.Btn{Unique: "confirm"}, b.cbHandler.HandleConfirmVPN)
 	b.teleBot.Handle(&tele.Btn{Unique: "cancel"}, b.cbHandler.HandleCancelVPN)
 
-	// Dynamic Callbacks via OnCallback
+	// Comprehensive fallback & dynamic callback dispatcher
 	b.teleBot.Handle(tele.OnCallback, func(c tele.Context) error {
-		data := c.Callback().Data
+		cb := c.Callback()
+		if cb == nil {
+			return nil
+		}
 
-		if strings.HasPrefix(data, "vpn_proto_") {
-			proto := strings.TrimPrefix(data, "vpn_proto_")
+		// Normalize callback data: strip Telebot prefix \f and extract base action
+		raw := strings.TrimPrefix(cb.Data, "\f")
+		action := raw
+		if idx := strings.Index(raw, "|"); idx != -1 {
+			action = raw[:idx]
+		}
+
+		switch {
+		// Start menu callbacks (support both new _ and legacy / formats)
+		case action == "c_vpn" || action == "c/vpn":
+			return b.vpnWizard.StartWizard(c)
+		case action == "m_refresh" || action == "m/refresh":
+			return b.cbHandler.HandleRefresh(c)
+		case action == "m_info" || action == "m/info":
+			return b.cbHandler.HandleServerInfo(c)
+		case action == "c_pass" || action == "c/pass":
+			return b.cbHandler.HandleChangePass(c)
+		case action == "c_uuid" || action == "c/uuid":
+			return b.cbHandler.HandleChangeUUID(c)
+		case action == "s_adblock" || action == "s/adblock":
+			return b.cbHandler.HandleToggleAdblock(c)
+		case action == "l_wildcard" || action == "l/wildcard":
+			return b.cbHandler.HandleListWildcard(c)
+		case action == "c_wildcard" || action == "c/wildcard":
+			return b.wildcardWizard.StartWizard(c)
+		case action == "t_desclaimer" || action == "t/desclaimer":
+			return b.cbHandler.HandleDisclaimer(c)
+		case action == "t_donasi" || action == "t/donasi":
+			return b.cbHandler.HandleDonasiInfo(c)
+		case action == "m_donasi" || action == "m/donasi":
+			return b.paymentHandler.HandleMakePayment(c)
+		case action == "confirm":
+			return b.cbHandler.HandleConfirmVPN(c)
+		case action == "cancel":
+			return b.cbHandler.HandleCancelVPN(c)
+
+		// Dynamic VPN Wizard Callbacks
+		case strings.HasPrefix(action, "vpn_proto_"):
+			proto := strings.TrimPrefix(action, "vpn_proto_")
 			return b.vpnWizard.HandleProtocolSelection(c, proto)
-		}
-
-		if strings.HasPrefix(data, "vpn_srv_") {
-			srvCode := strings.TrimPrefix(data, "vpn_srv_")
+		case strings.HasPrefix(action, "vpn_srv_"):
+			srvCode := strings.TrimPrefix(action, "vpn_srv_")
 			return b.vpnWizard.HandleServerSelection(c, srvCode)
-		}
-
-		if strings.HasPrefix(data, "vpn_page_") {
-			pageStr := strings.TrimPrefix(data, "vpn_page_")
+		case strings.HasPrefix(action, "vpn_page_"):
+			pageStr := strings.TrimPrefix(action, "vpn_page_")
 			page, _ := strconv.Atoi(pageStr)
 			return b.vpnWizard.HandleRelayPagination(c, page)
-		}
-
-		if strings.HasPrefix(data, "vpn_relay_") {
-			relay := strings.TrimPrefix(data, "vpn_relay_")
+		case strings.HasPrefix(action, "vpn_relay_"):
+			relay := strings.TrimPrefix(action, "vpn_relay_")
 			return b.vpnWizard.HandleRelaySelection(c, relay)
-		}
-
-		if data == "vpn_end" {
+		case action == "vpn_end":
 			return c.Respond(&tele.CallbackResponse{Text: "Sudah di halaman akhir!"})
-		}
 
-		if strings.HasPrefix(data, "c/donasi_") {
+		// Dynamic Payment Check Callbacks
+		case strings.HasPrefix(action, "c_donasi_") || strings.HasPrefix(action, "c/donasi_"):
 			return b.paymentHandler.HandleCheckPayment(c)
-		}
 
-		return nil
+		default:
+			logger.Warn().Str("callback_data", cb.Data).Str("action", action).Msg("Unhandled callback query")
+			return c.Respond()
+		}
 	})
 
 	// Photo Handler (Donation OCR)

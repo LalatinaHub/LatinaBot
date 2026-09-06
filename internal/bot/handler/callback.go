@@ -214,8 +214,12 @@ func (h *CallbackHandler) HandleListWildcard(c tele.Context) error {
 		b.WriteString(fmt.Sprintf("<code>%s.%s</code>", wildcards[0].Domain, servers[0].Domain))
 	}
 
+	menu := &tele.ReplyMarkup{}
+	btnRegister := menu.Data("Tambah Wildcard", "c_wildcard")
+	menu.Inline(menu.Row(btnRegister))
+
 	_ = c.Respond()
-	return c.Reply(b.String(), tele.ModeHTML)
+	return c.Reply(b.String(), menu, tele.ModeHTML)
 }
 
 // HandleDisclaimer shows the disclaimer alert modal.
@@ -244,8 +248,12 @@ func (h *CallbackHandler) HandleDonasiInfo(c tele.Context) error {
 		Caption: "↑ Contoh bukti donasi ↑\n\n" + msg,
 	}
 
+	menu := &tele.ReplyMarkup{}
+	btnDonasiQRIS := menu.Data("Donasi QRIS", "m_donasi")
+	menu.Inline(menu.Row(btnDonasiQRIS))
+
 	_ = c.Respond()
-	return c.Send(photo, tele.ModeHTML)
+	return c.Send(photo, menu, tele.ModeHTML)
 }
 
 // HandleConfirmVPN saves the configured VPN settings to user profile.
