@@ -2,13 +2,15 @@
 
 # Multi-stage production build for LatinaBot
 # Stage 1: Build statically linked binary
-ARG GO_VERSION=1.24
+ARG GO_VERSION=1.27
 FROM golang:${GO_VERSION}-alpine AS builder
 
 WORKDIR /build
 
-# Install CA certificates and timezone database
-RUN apk add --no-cache ca-certificates tzdata
+ENV GOTOOLCHAIN=auto
+
+# Install CA certificates, git, and timezone database
+RUN apk add --no-cache ca-certificates tzdata git
 
 # Leverage Docker cache for module dependencies
 COPY go.mod go.sum ./
