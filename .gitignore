@@ -177,3 +177,13 @@ dist
 # User defined
 gcloud*
 temp/*
+
+# Go
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
