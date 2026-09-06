@@ -1,32 +1,53 @@
-# Build Stage
-FROM golang:1.24-alpine AS builder
+# syntax=docker/dockerfile:1
 
-WORKDIR /src
+# Multi-stage production build for LatinaBot
+# Stage 1: Build statically linked binary
+ARG GO_VERSION=1.24
+FROM golang:${GO_VERSION}-alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache ca-certificates tzdata git
+WORKDIR /build
 
-# Copy common library and bot source code
-COPY common /common
-COPY LatinaBot /src/LatinaBot
+# Install CA certificates and timezone database
+RUN apk add --no-cache ca-certificates tzdata
 
-WORKDIR /src/LatinaBot
+# Leverage Docker cache for module dependencies
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
-# Download dependencies and compile static binary
-RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/latinabot ./cmd/bot
+# Copy application source code
+COPY . .
 
-# Runtime Stage
+# Target OS and architecture provided automatically by Docker Buildx
+ARG TARGETOS
+ARG TARGETARCH
+
+# Build statically linked binary
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} go build \
+    -trimpath \
+    -ldflags="-s -w -extldflags '-static'" \
+    -o /build/bin/latinabot \
+    ./cmd/bot
+
+# Stage 2: Minimal runtime image
 FROM alpine:3.20
 
 WORKDIR /app
 
+# Install runtime dependencies (SSL certificates and timezone)
 RUN apk add --no-cache ca-certificates tzdata
 
-COPY --from=builder /app/latinabot /app/latinabot
+# Copy binary from builder
+COPY --from=builder /build/bin/latinabot /app/latinabot
 
-# Create temporary directory for local order vouchers and QR codes
+# Ensure temp directory exists
 RUN mkdir -p /app/temp
+
+# Default container environment variables
+ENV PORT=8080 \
+    APP_ENV=production
 
 EXPOSE 8080
 
