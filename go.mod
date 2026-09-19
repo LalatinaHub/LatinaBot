@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	cloud.google.com/go/vision/v2 v2.15.0
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/LalatinaHub/common v0.3.0
+	github.com/LalatinaHub/common v0.3.1
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/robfig/cron/v3 v3.0.1
