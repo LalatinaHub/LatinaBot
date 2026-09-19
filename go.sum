@@ -77,6 +77,8 @@ github.com/LalatinaHub/common v0.3.0 h1:CcNasfYvW6ovUb+d28GO3d6bZQmK86rq1R+hNsOw
 github.com/LalatinaHub/common v0.3.0/go.mod h1:T3XI4f3lXv1RrYb+kMar4uZ+sIz9KM5aXlky9JlLOwI=
 github.com/LalatinaHub/common v0.3.1 h1:5kl1nVvIXv112IlL2BFdJ43RDxkjmwxlTY9JIVQspjc=
 github.com/LalatinaHub/common v0.3.1/go.mod h1:T3XI4f3lXv1RrYb+kMar4uZ+sIz9KM5aXlky9JlLOwI=
+github.com/LalatinaHub/common v0.3.2 h1:QK9bv0eLVexNxyUu1p+mp3pwsrLOo/QROnp6YiqM3pM=
+github.com/LalatinaHub/common v0.3.2/go.mod h1:T3XI4f3lXv1RrYb+kMar4uZ+sIz9KM5aXlky9JlLOwI=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
